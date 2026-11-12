@@ -1,0 +1,495 @@
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&display=swap');
+@import "tailwindcss";
+
+:root,
+[data-theme="dark"] {
+  /* ─── Apple Dark Mode: Surface Elevation via Tone ─── */
+  --c-bg: #000000;                     /* Base surface: Pure Black */
+  --c-bg-varied-1: #1C1C1E;            /* Secondary surface */
+  --c-bg-varied-2: #2C2C2E;            /* Tertiary surface */
+  --c-bg-sunken: #141416;              /* Sunken input well */
+
+  /* Glassmorphic Materials (iOS/macOS Control Center & Window Panes) */
+  --c-surface: rgba(28, 28, 30, 0.78); /* Semi-transparent frosted chrome */
+  --c-surface-solid: #1C1C1E;          /* Opaque secondary */
+  --c-surface-raised: #1C1C1E;         /* Layered card surface 1 */
+  --c-surface-elevated: #2C2C2E;       /* Layered card surface 2 */
+  --c-surface-quaternary: #3A3A3C;     /* Highest interactive surface */
+  --c-surface-sunken: #151517;         /* Sunken input field background */
+  --c-input-bg: #1C1C1E;
+  --c-modal-surface: rgba(44, 44, 46, 0.85); /* Glassmorphic modal material */
+
+  /* Materials Blur */
+  --glass-blur: blur(20px);
+  --glass-blur-heavy: blur(30px);
+
+  /* ─── Semantic Hierarchy for Text ─── */
+  --c-text-heading: #FFFFFF;                                /* Headings: pure white */
+  --c-text: rgba(255, 255, 255, 0.87);                     /* Primary text: 87% white */
+  --c-text-muted: rgba(255, 255, 255, 0.60);               /* Secondary text: 60% white */
+  --c-text-subtle: rgba(255, 255, 255, 0.38);              /* Tertiary text: 38% white */
+  --c-text-on-dark: #FFFFFF;
+
+  /* ─── Vibrant Tint Accents (Apple HIG) ─── */
+  --c-accent-blue: #0A84FF;            /* Apple Blue */
+  --c-accent-green: #30D158;           /* Apple Green */
+  --c-accent-indigo: #5E5CE6;          /* Apple Indigo */
+  --c-accent-orange: #FF9F0A;          /* Apple Orange */
+  --c-accent-red: #FF453A;             /* Apple Red */
+
+  --c-primary: #0A84FF;
+  --c-primary-hover: #409CFF;
+  --c-primary-subtle: rgba(10, 132, 255, 0.16);
+  --c-accent-text: #0A84FF;
+
+  --c-btn-bg: #0A84FF;                 /* Vibrant primary action */
+  --c-btn-hover: #409CFF;
+  --c-btn-text: #FFFFFF;
+  --c-btn-secondary: #2C2C2E;
+  --c-btn-secondary-hover: #3A3A3C;
+  --c-btn-secondary-text: rgba(255, 255, 255, 0.87);
+
+  --c-brand: #30D158;                  /* Apple Green status */
+  --c-brand-subtle: rgba(48, 209, 88, 0.15);
+
+  --danger: #FF453A;
+  --success: #30D158;
+  --warning: #FF9F0A;
+
+  --c-hover: rgba(255, 255, 255, 0.08);
+  --c-active: rgba(255, 255, 255, 0.14);
+  --c-overlay: rgba(0, 0, 0, 0.72);
+
+  /* Surface Elevation via Tone: subtle hairline borders & delicate ambient tone */
+  --c-border: rgba(255, 255, 255, 0.10);
+  --c-border-subtle: rgba(255, 255, 255, 0.08);
+  --c-border-strong: rgba(255, 255, 255, 0.18);
+
+  --shadow-divider-b: 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-divider-t: 0 -1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-divider-r: 1px 0 0 rgba(255, 255, 255, 0.08);
+  --shadow-divider-l: -1px 0 0 rgba(255, 255, 255, 0.08);
+
+  /* Minimal tone-based elevation instead of heavy drop shadows */
+  --shadow-raised-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-raised: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-raised-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  /* Staged document shadow on Apple black background with ambient rim highlight */
+  --shadow-staged-doc: 0 24px 50px -10px rgba(0, 0, 0, 0.9), 0 10px 20px -8px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  --shadow-staged-card: 0 14px 32px -8px rgba(0, 0, 0, 0.85), 0 4px 10px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.10);
+
+  /* Icon tokens (Apple Dark Mode: high contrast & prominent visibility) */
+  --c-icon-active: #FFFFFF;
+  --c-icon-idle: rgba(255, 255, 255, 0.92);
+  --c-icon-hover: #FFFFFF;
+  --c-icon-disabled: rgba(255, 255, 255, 0.46);
+
+  /* Shapes */
+  --radius-soft: 14px;
+  --radius-card: 16px;
+  --radius-modal: 20px;
+  --radius-btn: 9999px;
+  --radius-input: 10px;
+
+  /* Dimensions */
+  --bar-h: 38px;
+  --rail-w: 48px;
+  --statusbar-h: 28px;
+  --pane-w: 240px;
+  --inspector-w: 270px;
+  --page-width-regular: 1200px;
+
+  /* Typography */
+  --font-display: "Host Grotesk", -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+  --font-body: "Host Grotesk", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --font-ui: "Host Grotesk", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --font-mono: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  --headline-size: 59.8px;
+
+  /* Backward Compatibility Aliases */
+  --bg-app: var(--c-bg);
+  --bg-panel: var(--c-surface);
+  --bg-elevated: var(--c-surface-raised);
+  --bg-hover: var(--c-hover);
+  --border: var(--c-border-subtle);
+  --border-strong: var(--c-border-strong);
+  --text-primary: var(--c-text);
+  --text-secondary: var(--c-text-muted);
+  --text-muted: var(--c-text-subtle);
+  --accent: var(--c-primary);
+  --accent-hover: var(--c-primary-hover);
+  --accent-subtle: var(--c-primary-subtle);
+  --accent-soft: var(--c-primary-subtle);
+}
+
+/* Light Theme Mode: Warm Sand Palette */
+[data-theme="light"] {
+  --c-bg: #e3c9a1;
+  --c-bg-varied-1: #ebd7b7;
+  --c-bg-varied-2: #dcbf94;
+  --c-bg-sunken: #d6b88b;
+
+  --c-surface: #edd8b8;
+  --c-surface-solid: #edd8b8;
+  --c-surface-raised: #f7ecd9;
+  --c-surface-elevated: #faf3e7;
+  --c-surface-quaternary: #ffffff;
+  --c-surface-sunken: #d8bc8f;
+  --c-input-bg: #f8eedc;
+  --c-modal-surface: #f7ecd9;
+
+  --glass-blur: none;
+  --glass-blur-heavy: none;
+
+  --c-text-heading: #18181a;
+  --c-text: #18181a;
+  --c-text-muted: #534533;
+  --c-text-subtle: #74634f;
+  --c-text-on-dark: #faf3e7;
+
+  --c-accent-blue: #0A84FF;
+  --c-accent-green: #1f6f3a;
+  --c-accent-indigo: #5E5CE6;
+  --c-accent-orange: #b45309;
+  --c-accent-red: #b91c1c;
+
+  --c-primary: #18181a;
+  --c-primary-hover: #2d2d31;
+  --c-primary-subtle: rgba(24, 24, 26, 0.08);
+  --c-accent-text: #18181a;
+
+  --c-btn-bg: #18181a;
+  --c-btn-hover: #2d2d31;
+  --c-btn-text: #faf3e7;
+  --c-btn-secondary: #f7ecd9;
+  --c-btn-secondary-hover: #faf3e7;
+  --c-btn-secondary-text: #18181a;
+
+  --c-brand: #1f6f3a;
+  --c-brand-subtle: rgba(31, 111, 58, 0.1);
+
+  --danger: #b91c1c;
+  --success: #1f6f3a;
+  --warning: #b45309;
+
+  --c-hover: rgba(24, 24, 26, 0.07);
+  --c-active: rgba(24, 24, 26, 0.12);
+  --c-overlay: rgba(24, 24, 26, 0.55);
+
+  --c-border: rgba(45, 30, 15, 0.08);
+  --c-border-subtle: rgba(45, 30, 15, 0.07);
+  --c-border-strong: rgba(45, 30, 15, 0.14);
+  --shadow-divider-b: 0 3px 8px -2px rgba(45, 30, 15, 0.08);
+  --shadow-divider-t: 0 -3px 8px -2px rgba(45, 30, 15, 0.08);
+  --shadow-divider-r: 3px 0 8px -2px rgba(45, 30, 15, 0.08);
+  --shadow-divider-l: -3px 0 8px -2px rgba(45, 30, 15, 0.08);
+
+  --shadow-raised-sm: 0 2px 6px rgba(45, 30, 15, 0.06), 0 1px 2px rgba(45, 30, 15, 0.04);
+  --shadow-raised: 0 6px 18px rgba(45, 30, 15, 0.08), 0 2px 5px rgba(45, 30, 15, 0.05);
+  --shadow-raised-lg: 0 16px 36px rgba(45, 30, 15, 0.11), 0 4px 10px rgba(45, 30, 15, 0.06);
+
+  --shadow-staged-doc: 0 24px 52px rgba(35, 22, 10, 0.18), 0 6px 16px rgba(35, 22, 10, 0.08);
+  --shadow-staged-card: 0 12px 28px rgba(35, 22, 10, 0.12), 0 3px 8px rgba(35, 22, 10, 0.06);
+
+  /* Icon tokens (Light Mode: rich deep charcoal & distinct disabled contrast) */
+  --c-icon-active: #18181a;
+  --c-icon-idle: #18181a;
+  --c-icon-hover: #000000;
+  --c-icon-disabled: rgba(24, 24, 26, 0.52);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings: pure white #FFFFFF in dark mode */
+h1,
+.display-headline {
+  font-family: var(--font-display);
+  font-size: var(--headline-size);
+  font-weight: 800;
+  font-style: normal;
+  text-decoration: none;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--c-text-heading);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+/* Apple Rounded Pill Buttons */
+.btn-primary-rounded {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 20px;
+  border-radius: var(--radius-btn);
+  background-color: var(--c-btn-bg);
+  color: var(--c-btn-text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-raised-sm);
+  transition: background-color 140ms ease, transform 120ms ease, box-shadow 140ms ease;
+}
+
+.btn-primary-rounded:hover {
+  background-color: var(--c-btn-hover);
+  box-shadow: var(--shadow-raised);
+}
+
+.btn-secondary-rounded {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 16px;
+  border-radius: var(--radius-btn);
+  background-color: var(--c-btn-secondary);
+  color: var(--c-btn-secondary-text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-raised-sm);
+  transition: background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.btn-secondary-rounded:hover {
+  background-color: var(--c-btn-secondary-hover);
+  box-shadow: var(--shadow-raised);
+}
+
+/* Cards: Raised / Layered Tone with Soft Corners */
+.card-raised {
+  background-color: var(--c-surface-raised);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-raised);
+  transition: box-shadow 150ms ease, transform 120ms ease, background-color 150ms ease;
+}
+
+/* Selected-tool highlight: a bright white overlay under the active tool button.
+   In dark mode the active background (#1C1C1E) was invisible against the tool
+   strip (#1C1C1E), so this translucent white layer makes the selected tool obvious
+   in both themes. The overlay sits behind the icon/text via z-index stacking. */
+.action-btn[aria-pressed="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+}
+
+[data-theme="light"] .action-btn[aria-pressed="true"]::before {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.action-btn > * {
+  position: relative;
+  z-index: 1;
+}
+
+.card-raised:hover {
+  box-shadow: var(--shadow-raised-lg);
+}
+
+/* Document Canvas & Staged Shadows */
+.document-canvas {
+  background-color: var(--c-bg);
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+.page-frame {
+  position: relative;
+  background-color: #ffffff;
+  margin: 0 auto;
+  border-radius: 4px;
+  box-shadow: var(--shadow-staged-doc);
+  transition: box-shadow 160ms ease;
+}
+
+/* Custom Lean Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(24, 24, 26, 0.16);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(24, 24, 26, 0.28);
+}
+
+/* Text layer */
+.pdf-text-layer {
+  position: absolute;
+  inset: 0;
+  line-height: 1;
+  /* Fully transparent: the layer exists only to make canvas text selectable.
+     A partial opacity here also fades the selection highlight and lets the
+     browser paint a second, offset copy of the glyphs. */
+  opacity: 1;
+  overflow: hidden;
+  pointer-events: auto;
+}
+.pdf-text-layer span {
+  position: absolute;
+  white-space: pre;
+  transform-origin: 0% 0%;
+  color: transparent;
+  cursor: text;
+}
+.pdf-text-layer span::selection {
+  /* Highlight only. Letting the browser colour the selected glyphs draws a
+     visible duplicate of the text straight over the canvas glyphs. */
+  background: rgba(10, 132, 255, 0.34);
+  color: transparent;
+}
+
+/* OCR text layer — invisible but selectable words from the Tesseract worker */
+.pdf-ocr-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  line-height: 1;
+  z-index: 4;
+  user-select: text;
+}
+
+.pdf-ocr-layer span {
+  position: absolute;
+  color: transparent;
+  white-space: pre;
+  overflow: hidden;
+  cursor: text;
+  user-select: text;
+}
+
+.pdf-ocr-layer span::selection {
+  background: rgba(10, 132, 255, 0.35);
+}
+
+/* Floating menu shown when text is selected on a page */
+.selection-menu {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--c-surface-raised);
+  border: 1px solid var(--c-border-subtle);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.22);
+}
+
+.selection-menu-hint {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-text-subtle);
+  padding: 0 6px 0 4px;
+  white-space: nowrap;
+}
+
+.selection-menu button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  color: var(--c-icon-idle);
+}
+
+.selection-menu button:hover {
+  background: var(--c-hover);
+  color: var(--c-icon-hover);
+}
+
+.pdf-text-layer span.editing {
+  color: #000000;
+  background: #fefcbf;
+  outline: 2px solid var(--c-primary);
+  opacity: 1;
+  z-index: 5;
+}
+
+.form-field-overlay {
+  position: absolute;
+  border: 1px dashed var(--c-primary);
+  background: var(--c-primary-subtle);
+  pointer-events: auto;
+  border-radius: 4px;
+}
+
+.form-field-overlay.selected {
+  border-style: solid;
+  box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.35);
+}
+
+.object-selection {
+  position: absolute;
+  border: 1.5px solid var(--c-primary);
+  pointer-events: none;
+}
+
+/* Inline progress spinner used by tool dialogs */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
