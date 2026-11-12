@@ -9,13 +9,12 @@
 
 ## Why AnyDoc?
 
-AnyDoc started with a simple problem: finding a PDF editor in an emergency. iLovePDF charges money to edit text. Open-source alternatives like Stirling PDF require an account and still lack text editing. AnyDoc solves this. It has no accounts, no paywalls, and no uploads. Everything happens in your browser, making it completely private.
+AnyDoc started with a simple problem: finding a PDF editor in an emergency. Online PDF editors charges money to edit text. Some Open-source alternatives  require an account and still lack text editing. AnyDoc solves this. It has no accounts, no paywalls, and no uploads. Everything happens in your browser, making it completely private.
 
 ## Description
 
 AnyDoc is a browser‑based document editor that handles PDFs, Word files, spreadsheets, and presentations without sending data to a server. All processing—viewing, editing, form filling, redaction, and conversion—runs entirely in the client, so files never leave the user’s device.
 
-The interface uses an Apple‑inspired dark theme with glass‑morphic surfaces and CSS custom properties. Document parsing relies on a mix of PDF.js, Tesseract.js, Mammoth, and other format‑specific libraries.
 
 ## Techniques
 
