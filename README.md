@@ -21,7 +21,6 @@ AnyDoc is a browser‑based document editor that handles PDFs, Word files, sprea
 - **Client‑only rendering with dynamic imports** – The main editor shell is loaded with [`next/dynamic`](https://nextjs.org/docs/app/building-your-application/optimizing/lazy-loading) and `ssr: false` in [`src/app/page.tsx`](src/app/page.tsx). This keeps document‑processing code out of the server bundle and avoids hydration mismatches.
 - **Web Workers for heavy tasks** – OCR and PDF parsing run off the main thread via workers. Tesseract.js and PDF.js both use Web Workers (see [`Worker` on MDN](https://developer.mozilla.org/en-US/docs/Web/API/Worker)).
 - **CSS custom properties for theming** – The design system is built on CSS variables in [`src/app/globals.css`](src/app/globals.css). Surface elevations, text hierarchy, and accent colours are all tokens, making the Apple‑style dark mode straightforward to maintain. See [Using CSS custom properties](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties).
-- **Glass‑morphism with `backdrop-filter`** – Translucent panels use `backdrop-filter: blur()` to create frosted‑glass effects (see [`backdrop-filter` on MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter)).
 - **Client‑side file handling with `File` and `Blob` APIs** – Files are read locally with the [File API](https://developer.mozilla.org/en-US/docs/Web/API/File) and generated outputs are saved via `file-saver`, so no upload endpoint is required.
 
 ## Technologies
@@ -34,7 +33,6 @@ AnyDoc is a browser‑based document editor that handles PDFs, Word files, sprea
 - **pdf‑lib** – Creates and modifies PDFs (forms, redaction, merging).
 - **Zustand** – Lightweight state management for the editor.
 - **Tailwind CSS v4** – Utility‑first styling, configured via [`postcss.config.mjs`](postcss.config.mjs).
-- **Lucide React** – Icon set.
 - **Host Grotesk** – The typeface, loaded from [Google Fonts](https://fonts.google.com/specimen/Host+Grotesk).
 
 The repository also contains a `.agents/skills/vercel-react-best-practices` directory—a structured collection of React performance rules intended for AI agents and LLMs. It is not part of the runtime app but is worth noting for teams using automated code review.
@@ -43,9 +41,6 @@ The repository also contains a `.agents/skills/vercel-react-best-practices` dire
 
 ```text
 .
-├── .agents/
-│   └── skills/
-│       └── vercel-react-best-practices/
 ├── public/
 │   └── vendor/
 │       ├── pdfjs/
