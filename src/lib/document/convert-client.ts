@@ -2,6 +2,8 @@
 
 import { getPdfjs } from "@/lib/document/load";
 import { withRenderLock } from "@/lib/document/render-queue";
+import { extractDocumentText, htmlDocumentText } from "@/lib/document/office-extract";
+import { renderTextPdf } from "@/lib/document/text-to-pdf";
 
 export async function extractTextByPage(bytes: Uint8Array): Promise<string[]> {
   const pdfjs = await getPdfjs();
@@ -52,20 +54,12 @@ export async function renderPagesToBlobs(
   return blobs;
 }
 
+/** HTML → PDF, in the browser: no upload and no server round trip. */
 export async function createPdfFromHtml(html: string): Promise<Uint8Array> {
-  const res = await fetch("/api/convert/from-html", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ html }),
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return new Uint8Array(await res.arrayBuffer());
+  return renderTextPdf(htmlDocumentText(html), "HTML Import");
 }
 
+/** Office/OpenDocument → PDF, in the browser: the file never leaves the machine. */
 export async function createPdfFromOffice(file: File): Promise<Uint8Array> {
-  const form = new FormData();
-  form.append("file", file);
-  const res = await fetch("/api/convert/from-office", { method: "POST", body: form });
-  if (!res.ok) throw new Error(await res.text());
-  return new Uint8Array(await res.arrayBuffer());
+  return renderTextPdf(await extractDocumentText(file), file.name);
 }

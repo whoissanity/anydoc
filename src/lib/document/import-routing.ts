@@ -2,7 +2,7 @@
 
 import { detectImageKind, looksLikePdf } from "@/lib/document/validate";
 
-/** Routes imports by content: PDF/image by signature, HTML by name; rest via the server-side converter. */
+/** Routes imports by content: PDF/image by signature, HTML by name; everything else goes to the in-browser document converter. */
 
 export type ImportKind = "pdf" | "image" | "html" | "document";
 
