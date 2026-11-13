@@ -55,10 +55,6 @@ These aren't marketing lines — every one of them is a mechanism you can go rea
 - **Untrusted input handling.** Every upload is validated by its file signature (`%PDF-`, PNG/JPEG magic bytes) — never by its extension or the browser's reported MIME type.
 - **Real redaction.** A redacted area is re-rendered to a lossless raster and burned into the pixel stream. There's no recoverable text layer underneath and no bypassable transparent box on top.
 
-### The One Server Round Trip to Know About
-
-Everything is client-side **except** creating a PDF from an Office document or from HTML. Those two paths — `/api/convert/from-office` and `/api/convert/from-html` — POST the file to this app's own Next.js server, convert it in memory, and hand the PDF straight back. No database, no disk write, no logging. Every other conversion (PDF → Word / Excel / PowerPoint / Markdown / etc.) runs entirely in your browser. For a strictly zero-round-trip path, use the **From Plain Text** or **From Images** creation options instead.
-
 ## Features
 
 **Open & create** — drag in a PDF, or start a new document from images, plain text, HTML, Word, Excel, or any supported format.
