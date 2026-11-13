@@ -3,6 +3,7 @@
 import { useEditorStore } from "@/store/editor-store";
 import type { ImageObject } from "@/lib/types";
 import { readImageFile } from "@/lib/document/validate";
+import { newId } from "@/lib/id";
 
 /** Places a signature-validated image as a centred `ImageObject` marked `replaced: true`, reusing the `applyImageEdits` bake path. */
 
@@ -58,7 +59,7 @@ export async function insertImageFromFile(file: File): Promise<void> {
     const height = natural.height * factor;
 
     const image: ImageObject = {
-      id: `img-insert-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: `img-insert-${newId()}`,
       pageIndex,
       x: (viewport.width - width) / 2,
       y: (viewport.height - height) / 2,

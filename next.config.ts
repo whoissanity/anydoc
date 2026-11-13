@@ -2,17 +2,17 @@ import type { NextConfig } from "next";
 
 // Security headers locked to this origin: script-src needs 'unsafe-inline' for
 // the App Router's hydration tags (no nonce middleware) and 'unsafe-eval' in dev
-// only for React Fast Refresh. PDF.js cmaps and OCR worker/assets are vendored
-// under /public/vendor, never a CDN.
+// only for React Fast Refresh. Every runtime asset — PDF.js cmaps, the OCR worker
+// and traineddata, the Host Grotesk font — is vendored under /public/vendor, never
+// a CDN, so font-src/style-src stay same-origin.
 const isDev = process.env.NODE_ENV !== "production";
 
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} 'wasm-unsafe-eval'`,
-  // The layout links Google Fonts at runtime, so both hosts must be allowed.
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
-  "font-src 'self' data: https://fonts.gstatic.com",
+  "font-src 'self' data:",
   "worker-src 'self' blob:",
   "connect-src 'self' blob: data:",
   "object-src 'none'",

@@ -9,10 +9,7 @@ import { withRenderLock } from "@/lib/document/render-queue";
 import { createFormFieldId } from "@/lib/edit/forms";
 import { Highlighter, Strikethrough, Underline } from "lucide-react";
 import type { AnnotationItem, FormFieldDraft, ImageObject, StickyNoteItem } from "@/lib/types";
-
-function nanoid() {
-  return Math.random().toString(36).slice(2, 10);
-}
+import { newId } from "@/lib/id";
 
 function isMarkupTool(tool: string) {
   return tool === "highlight" || tool === "underline" || tool === "strikethrough";
@@ -285,7 +282,7 @@ export function PdfPage({ pageNumber, scale }: Props) {
           ? underlineColor
           : strikeColor;
       useEditorStore.getState().addAnnotation({
-        id: nanoid(),
+        id: newId(),
         type,
         pageIndex: pageNumber - 1,
         color,
@@ -486,7 +483,7 @@ export function PdfPage({ pageNumber, scale }: Props) {
         const h = Math.abs(curY - startY);
         if (w > 4 && h > 4) {
           useEditorStore.getState().addRedaction({
-            id: nanoid(),
+            id: newId(),
             pageIndex: pageNumber - 1,
             x: x / scale,
             y: (size.h - (y + h)) / scale,
@@ -508,7 +505,7 @@ export function PdfPage({ pageNumber, scale }: Props) {
           const container = containerRef.current;
           if (container) {
             const annot: AnnotationItem = {
-              id: nanoid(),
+              id: newId(),
               type: "draw",
               pageIndex: pageNumber - 1,
               color: "#1a6eff",
@@ -535,7 +532,7 @@ export function PdfPage({ pageNumber, scale }: Props) {
         const xCss = e.clientX - rect.left;
         const yCss = e.clientY - rect.top;
         const note: StickyNoteItem = {
-          id: nanoid(),
+          id: newId(),
           pageIndex: pageNumber - 1,
           x: xCss / scale,
           y: yCss / scale,

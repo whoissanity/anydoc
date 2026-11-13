@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { isSameOriginRequest, CROSS_ORIGIN_REFUSED } from "@/lib/security/request";
 import { PDFDocument, StandardFonts, rgb, PageSizes } from "pdf-lib";
 
+/** Stdlib Helvetica is WinAnsi; anything outside its repertoire would throw at draw time. */
+function pdfSafe(value: string): string {
+  return value
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, " ")
+    .replace(/[^\u0000-\u00FF\u2013\u2014\u2018\u2019\u201C\u201D\u2022\u2026\u20AC]/g, "?");
+}
+
 export async function POST(req: NextRequest) {
   if (!isSameOriginRequest(req)) {
     return NextResponse.json(CROSS_ORIGIN_REFUSED, { status: 403 });
@@ -11,16 +18,22 @@ export async function POST(req: NextRequest) {
   if (html.length > 2_000_000) {
     return NextResponse.json({ error: "HTML input is too large" }, { status: 413 });
   }
-  const text = html
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/\s+/g, " ")
-    .trim();
+  const text = pdfSafe(
+    html
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[\s\S]*?<\/style>/gi, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&apos;/g, "'")
+      .replace(/&#(\d+);/g, (_, code: string) => String.fromCharCode(Number(code)))
+      .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => String.fromCharCode(parseInt(code, 16)))
+      .replace(/\s+/g, " ")
+      .trim()
+  );
 
   const doc = await PDFDocument.create();
   doc.setTitle("HTML Import");

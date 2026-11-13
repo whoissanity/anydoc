@@ -188,8 +188,6 @@ export default function LandingWorkspace({
               padding: "24px",
               borderRadius: "var(--radius-card)",
               backgroundColor: "var(--c-surface-elevated)",
-              backgroundImage:
-                "radial-gradient(ellipse at 50% 20%, rgba(255, 255, 255, 0.07) 0%, transparent 75%)",
               border: "1px solid var(--c-border)",
               boxShadow: "var(--shadow-raised)",
               display: "flex",

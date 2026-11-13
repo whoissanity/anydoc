@@ -1,6 +1,6 @@
 import { rgb, StandardFonts } from "pdf-lib";
 import { escapeXml } from "@/lib/security/escape";
-import { loadPdfLib, savePdfBytes } from "@/lib/document/pages";
+import { loadPdfLib, savePdfBytes, stripMetadata } from "@/lib/document/pages";
 
 /** Strips control characters so untrusted text cannot break a drawn text run. */
 function cleanText(value: string | undefined, max = 96): string {
@@ -49,14 +49,7 @@ export interface CommentThread {
 /** Scrubs hidden metadata (author, title, subject, creator, producer, dates). */
 export async function scrubPdfMetadata(bytes: Uint8Array): Promise<Uint8Array> {
   const doc = await loadPdfLib(bytes);
-  doc.setTitle("");
-  doc.setAuthor("");
-  doc.setSubject("");
-  doc.setKeywords([]);
-  doc.setProducer("");
-  doc.setCreator("");
-  doc.setCreationDate(new Date(0));
-  doc.setModificationDate(new Date(0));
+  stripMetadata(doc);
   return savePdfBytes(doc);
 }
 

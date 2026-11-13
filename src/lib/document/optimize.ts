@@ -1,7 +1,7 @@
 "use client";
 
 import { PDFDocument, PDFName, rgb, StandardFonts, degrees } from "pdf-lib";
-import { loadPdfLib, savePdfBytes } from "@/lib/document/pages";
+import { loadPdfLib, savePdfBytes, stripMetadata } from "@/lib/document/pages";
 import { canvasToJpegBytes, canvasToPngBytes, loadRasterDoc, renderRasterPage } from "@/lib/document/raster";
 
 export interface RedactRegion {
@@ -103,14 +103,7 @@ export async function redactPdf(
   }
 
   if (opts.stripMetadata) {
-    out.setTitle("");
-    out.setAuthor("");
-    out.setSubject("");
-    out.setKeywords([]);
-    out.setCreator("");
-    out.setProducer("");
-    out.setCreationDate(new Date(0));
-    out.setModificationDate(new Date(0));
+    stripMetadata(out);
   }
 
   const result = await savePdfBytes(out);
@@ -265,14 +258,7 @@ export async function sanitizePdf(
   }
 
   if (opts.metadata) {
-    doc.setTitle("");
-    doc.setAuthor("");
-    doc.setSubject("");
-    doc.setKeywords([]);
-    doc.setCreator("");
-    doc.setProducer("");
-    doc.setCreationDate(new Date(0));
-    doc.setModificationDate(new Date(0));
+    stripMetadata(doc);
     report.push("Erased document title, author, subject, keywords and dates");
   }
   if (opts.removeXmp && has("Metadata")) {

@@ -55,6 +55,18 @@ export async function savePdfBytes(doc: PDFDocument): Promise<Uint8Array> {
   return doc.save({ useObjectStreams: true });
 }
 
+/** Blanks title, author, subject, keywords, creator, producer and both dates; shared by the scrub, sanitize and redact paths. */
+export function stripMetadata(doc: PDFDocument): void {
+  doc.setTitle("");
+  doc.setAuthor("");
+  doc.setSubject("");
+  doc.setKeywords([]);
+  doc.setCreator("");
+  doc.setProducer("");
+  doc.setCreationDate(new Date(0));
+  doc.setModificationDate(new Date(0));
+}
+
 export async function reorderPages(bytes: Uint8Array, order: number[]): Promise<Uint8Array> {
   const src = await loadPdfLib(bytes);
   const out = await PDFDocument.create();

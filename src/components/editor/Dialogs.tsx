@@ -616,10 +616,10 @@ export function DigitalSignatureDialog({
     hash: string;
   }) => void;
 }) {
-  const [signerName, setSignerName] = useState("Corporate Officer");
-  const [organization, setOrganization] = useState("Legal & Compliance Dept");
-  const [reason, setReason] = useState("Official Document Approval & Release");
-  const [location, setLocation] = useState("London, UK");
+  const [signerName, setSignerName] = useState("");
+  const [organization, setOrganization] = useState("");
+  const [reason, setReason] = useState("");
+  const [location, setLocation] = useState("");
 
   return (
     <Modal title="Document Integrity Stamp" onClose={onClose}>
@@ -645,16 +645,36 @@ export function DigitalSignatureDialog({
       </div>
 
       <label style={lab}>Signer Name</label>
-      <input style={inp} value={signerName} onChange={(e) => setSignerName(e.target.value)} />
+      <input
+        style={inp}
+        value={signerName}
+        placeholder="Full name of the person stamping"
+        onChange={(e) => setSignerName(e.target.value)}
+      />
 
       <label style={lab}>Organization / Entity</label>
-      <input style={inp} value={organization} onChange={(e) => setOrganization(e.target.value)} />
+      <input
+        style={inp}
+        value={organization}
+        placeholder="Organization or entity, if any"
+        onChange={(e) => setOrganization(e.target.value)}
+      />
 
       <label style={lab}>Reason for Signing</label>
-      <input style={inp} value={reason} onChange={(e) => setReason(e.target.value)} />
+      <input
+        style={inp}
+        value={reason}
+        placeholder="Why this document is being stamped"
+        onChange={(e) => setReason(e.target.value)}
+      />
 
       <label style={lab}>Location</label>
-      <input style={inp} value={location} onChange={(e) => setLocation(e.target.value)} />
+      <input
+        style={inp}
+        value={location}
+        placeholder="City, country"
+        onChange={(e) => setLocation(e.target.value)}
+      />
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
         <button type="button" className="btn-secondary-rounded" onClick={onClose}>
@@ -663,6 +683,9 @@ export function DigitalSignatureDialog({
         <button
           type="button"
           className="btn-primary-rounded"
+          disabled={!signerName.trim()}
+          title="Enter a signer name"
+          style={{ opacity: signerName.trim() ? 1 : 0.5, cursor: signerName.trim() ? "pointer" : "not-allowed" }}
           onClick={() => {
             const dateStr = new Date().toLocaleDateString("en-US", {
               month: "short",

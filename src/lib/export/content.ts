@@ -2,6 +2,14 @@
 
 import { loadPdfLib } from "@/lib/document/pages";
 import { loadRasterDoc } from "@/lib/document/raster";
+import { pdfFieldKind } from "@/lib/edit/forms";
+import type {
+  PDFCheckBox,
+  PDFDropdown,
+  PDFOptionList,
+  PDFRadioGroup,
+  PDFTextField,
+} from "pdf-lib";
 
 // Structured PDF content for every export writer; parsed once per export, not once per format.
 
@@ -173,18 +181,22 @@ async function readFields(bytes: Uint8Array): Promise<ExportField[]> {
 
     for (const field of form.getFields()) {
       const name = field.getName();
-      const kind = field.constructor.name;
+      const kind = pdfFieldKind(field);
       try {
-        if (kind.includes("CheckBox")) {
-          out.push({ name, type: "checkbox", value: String(form.getCheckBox(name).isChecked()) });
-        } else if (kind.includes("RadioGroup")) {
-          out.push({ name, type: "radio", value: form.getRadioGroup(name).getSelected() ?? "" });
-        } else if (kind.includes("Dropdown")) {
-          out.push({ name, type: "dropdown", value: form.getDropdown(name).getSelected()[0] ?? "" });
-        } else if (kind.includes("OptionList")) {
-          out.push({ name, type: "list", value: form.getOptionList(name).getSelected()[0] ?? "" });
-        } else if (kind.includes("TextField")) {
-          out.push({ name, type: "text", value: form.getTextField(name).getText() ?? "" });
+        if (kind === "checkbox") {
+          out.push({ name, type: "checkbox", value: String((field as PDFCheckBox).isChecked()) });
+        } else if (kind === "radio") {
+          out.push({ name, type: "radio", value: (field as PDFRadioGroup).getSelected() ?? "" });
+        } else if (kind === "dropdown") {
+          out.push({
+            name,
+            type: "dropdown",
+            value: (field as PDFDropdown).getSelected()[0] ?? "",
+          });
+        } else if (kind === "list") {
+          out.push({ name, type: "list", value: (field as PDFOptionList).getSelected()[0] ?? "" });
+        } else if (kind === "text") {
+          out.push({ name, type: "text", value: (field as PDFTextField).getText() ?? "" });
         } else {
           out.push({ name, type: "other", value: "" });
         }

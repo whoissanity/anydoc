@@ -3,10 +3,28 @@ import {
   rgb,
   PDFName,
   PDFString,
+  PDFCheckBox,
+  PDFDropdown,
+  PDFOptionList,
+  PDFRadioGroup,
+  PDFTextField,
   type PDFField,
 } from "pdf-lib";
 import type { FormFieldDraft } from "@/lib/types";
 import { loadPdfLib, savePdfBytes } from "@/lib/document/pages";
+import { newId } from "@/lib/id";
+
+export type PdfFieldKind = "checkbox" | "radio" | "dropdown" | "list" | "text" | "unknown";
+
+/** Field type by class identity: bundlers rewrite `constructor.name`, so it must not gate form logic. */
+export function pdfFieldKind(field: PDFField): PdfFieldKind {
+  if (field instanceof PDFCheckBox) return "checkbox";
+  if (field instanceof PDFRadioGroup) return "radio";
+  if (field instanceof PDFDropdown) return "dropdown";
+  if (field instanceof PDFOptionList) return "list";
+  if (field instanceof PDFTextField) return "text";
+  return "unknown";
+}
 
 export async function embedFormFields(
   bytes: Uint8Array,
@@ -74,8 +92,9 @@ export async function embedFormFields(
           break;
         }
       }
-    } catch {
-      // field name collision — skip
+    } catch (error) {
+      // pdf-lib rejects duplicate field names; anything else is a real failure.
+      if (!(error instanceof Error) || !/already exists/i.test(error.message)) throw error;
     }
   }
 
@@ -102,11 +121,11 @@ export async function readExistingFormFields(bytes: Uint8Array): Promise<FormFie
         if (found >= 0) pageIndex = found;
       }
       const { height } = doc.getPage(pageIndex).getSize();
-      const ctor = field.constructor.name;
+      const kind = pdfFieldKind(field);
       let type: FormFieldDraft["type"] = "text";
-      if (ctor.includes("CheckBox")) type = "checkbox";
-      else if (ctor.includes("Radio")) type = "radio";
-      else if (ctor.includes("Dropdown") || ctor.includes("OptionList")) type = "dropdown";
+      if (kind === "checkbox") type = "checkbox";
+      else if (kind === "radio") type = "radio";
+      else if (kind === "dropdown" || kind === "list") type = "dropdown";
 
       drafts.push({
         id: `existing-${idx}-${wIdx}`,
@@ -214,8 +233,8 @@ export function autoDetectFieldsFromCanvas(
   return fields.slice(0, 40);
 }
 
-export function createFormFieldId() {
-  return `field_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+export function createFormFieldId(): string {
+  return `field_${newId()}`;
 }
 
 /** Size cap for calculate scripts (untrusted text from the inspector). */
@@ -357,15 +376,15 @@ export async function fillFormValues(
   for (const [name, value] of Object.entries(values)) {
     try {
       const field = form.getField(name);
-      const ctor = field.constructor.name;
-      if (ctor.includes("TextField") && typeof value === "string") {
-        (field as ReturnType<typeof form.getTextField>).setText(value);
-      } else if (ctor.includes("CheckBox")) {
-        const cb = form.getCheckBox(name);
+      const kind = pdfFieldKind(field);
+      if (kind === "text" && typeof value === "string") {
+        (field as PDFTextField).setText(value);
+      } else if (kind === "checkbox") {
+        const cb = field as PDFCheckBox;
         if (value) cb.check();
         else cb.uncheck();
-      } else if (ctor.includes("Dropdown") && typeof value === "string") {
-        form.getDropdown(name).select(value);
+      } else if (kind === "dropdown" && typeof value === "string") {
+        (field as PDFDropdown).select(value);
       }
     } catch {
       // ignore missing
