@@ -28,7 +28,6 @@ No uploads. No accounts. No tracking. Every byte of every document you touch sta
 
 - [Why AnyDoc?](#why-anydoc)
 - [The Privacy Contract](#the-privacy-contract)
-- [The One Server Round Trip to Know About](#the-one-server-round-trip-to-know-about)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
@@ -51,9 +50,13 @@ These aren't marketing lines — every one of them is a mechanism you can go rea
 - **No CDN, ever.** PDF.js's character maps, the Tesseract OCR worker + WASM core + language data, and the Host Grotesk typeface are all vendored under [`public/vendor`](public/vendor) and served same-origin. No page load reaches a font, script, or data CDN.
 - **A CSP that actually enforces it.** [`next.config.ts`](next.config.ts) ships a real `Content-Security-Policy` — `default-src 'self'`, `connect-src 'self' blob: data:`, `font-src 'self' data:`, `object-src 'none'`, `frame-ancestors 'none'` — plus HSTS and a locked-down `Permissions-Policy`. If a future change ever tried to sneak in a third-party request, the browser itself would block it.
 - **Zero client persistence.** No `localStorage`, `sessionStorage`, `IndexedDB`, or cookies. Your document's bytes and any extracted text live only in memory, for the life of the tab.
-- **Ephemeral server memory.** The only two server routes that exist build a PDF in memory and hand it straight back. Nothing is logged, cached, or written to disk — see below.
+- **No server at all for your files.** Creating a PDF from Word, Excel, PowerPoint, OpenDocument, EPUB, RTF or HTML used to POST to an API route; both paths now run entirely in the browser (`src/lib/document/office-extract.ts` + `text-to-pdf.ts`). There is no upload endpoint left to send a document to.
 - **Untrusted input handling.** Every upload is validated by its file signature (`%PDF-`, PNG/JPEG magic bytes) — never by its extension or the browser's reported MIME type.
 - **Real redaction.** A redacted area is re-rendered to a lossless raster and burned into the pixel stream. There's no recoverable text layer underneath and no bypassable transparent box on top.
+
+### No server round trip at all
+
+Every conversion runs in your browser. The Office → PDF and HTML → PDF paths once posted the file to a Next.js API route; those routes are gone. Extraction now lives in `src/lib/document/office-extract.ts` and rendering in `src/lib/document/text-to-pdf.ts`, carrying the same size caps, magic-byte checks and XML DTD rejection — enforced on the user's device instead of on a host. Nothing is uploaded, because there is no endpoint left to upload to.
 
 ## Features
 
@@ -98,10 +101,7 @@ anydoc/
 │   └── fonts/                #   Host Grotesk (SIL OFL 1.1), self-hosted
 ├── src/
 │   ├── app/
-│   │   ├── api/convert/
-│   │   │   ├── from-html/    # the only 2 server routes — see "privacy contract"
-│   │   │   └── from-office/  #   (Office / ODT / EPUB / RTF → PDF)
-│   │   └── page.tsx          # client-only editor shell (ssr: false)
+│   │   └── page.tsx          # client-only editor shell (ssr: false); no API routes
 │   ├── components/
 │   │   ├── editor/           # Ribbon, Workbench, Dialogs, Inspector, StatusBar
 │   │   ├── viewer/           # PdfViewer / PdfPage — the pdf.js render loop
@@ -109,12 +109,12 @@ anydoc/
 │   │   ├── panes/            # thumbnails, outline, attachments, layers
 │   │   └── tools/            # ToolGallery, ToolDialog
 │   ├── lib/
-│   │   ├── document/         # load, validate, raster, optimize, document-service
+│   │   ├── document/         # load, validate, raster, optimize, office-extract, text-to-pdf
 │   │   ├── edit/             # annotate, forms, edit-engine, marks, split-advanced
 │   │   ├── export/           # catalog + client-side writers (docx, pptx, xlsx, html, rtf, odf, epub)
 │   │   ├── inspect/          # bookmarks, compare, extract
 │   │   ├── ocr/               # Tesseract service + vendored asset paths
-│   │   ├── security/         # CSP helpers, filename safety, same-origin checks
+│   │   ├── security/         # CSP helpers, filename safety, output escaping
 │   │   ├── text/             # fonts, layout, markdown
 │   │   └── tools/            # the full tool catalog behind the Ribbon
 │   └── store/editor-store.ts # single Zustand store for all editor state
@@ -145,7 +145,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Testing
 
-`src/app/api/__tests__/convert-routes.test.ts` boots a real `next start` server, so run `npm run build` once before `npm test` on a fresh checkout.
+`npm test` runs the full Vitest suite. Every test is a client-side unit test — no `next build` and no running server required.
 
 ## License
 
