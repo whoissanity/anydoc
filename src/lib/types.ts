@@ -1,4 +1,4 @@
-export type ViewMode = "single" | "continuous" | "spread" | "presentation";
+export type ViewMode = "single" | "continuous" | "spread" | "presentation" | "reflow";
 export type LeftPane = "thumbnails" | "outline" | "attachments" | "layers" | "comments" | "none";
 export type WorkbenchView = "viewer" | "pageEditor" | "fileEditor";
 export type ActiveDialog =
@@ -12,7 +12,11 @@ export type ActiveDialog =
   | "metadata"
   | "password"
   | "diff"
-  | "tool";
+  | "batch"
+  | "pdfa"
+  | "ocr"
+  | "tool"
+  | "ocrPacks";
 
 export type Tool =
   | "select"
@@ -99,6 +103,45 @@ export interface BatesOptions {
 }
 
 export interface TextEditSession {
+  /** Stable per-session key so property tweaks don't clobber the in-progress text. */
+  id: string;
+  pageIndex: number;
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fontSize: number;
+  fontFamily: string;
+  /** Original PDF/Office face name, kept so the resolver can match it precisely. */
+  sourceFontName?: string;
+  color: string;
+  /** Line-height multiplier; defaults to 1.25 when omitted. */
+  lineHeight?: number;
+  /** Bold face, detected from the source span or toggled by the user. */
+  bold?: boolean;
+  underline?: boolean;
+  strikethrough?: boolean;
+  /** Clockwise rotation in degrees around the box centre. */
+  rotation?: number;
+  /** Set when the session edits a placed TextObject rather than baked PDF text. */
+  objectId?: string;
+  /** Editing text that already exists must paint an opaque underlay so the original is hidden. */
+  eraseUnderlay?: boolean;
+  /**
+   * Existing PDF lines keep their breaks; only lines edited past the box width are
+   * fitted horizontally. Re-wrapping them with the substitute face added lines and
+   * pushed them into the following block.
+   */
+  preserveLines?: boolean;
+}
+
+/**
+ * Text placed by the editor and not yet baked into the PDF. Keeping it as an overlay
+ * (like ImageObject) lets the user move, resize and rotate it before it is saved.
+ */
+export interface TextObject {
+  id: string;
   pageIndex: number;
   text: string;
   x: number;
@@ -108,6 +151,11 @@ export interface TextEditSession {
   fontSize: number;
   fontFamily: string;
   color: string;
+  lineHeight?: number;
+  bold?: boolean;
+  underline?: boolean;
+  strikethrough?: boolean;
+  rotation: number;
 }
 
 export interface AnnotationItem {

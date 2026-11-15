@@ -4,7 +4,8 @@ import type { NextConfig } from "next";
 // the App Router's hydration tags (no nonce middleware) and 'unsafe-eval' in dev
 // only for React Fast Refresh. Every runtime asset — PDF.js cmaps, the OCR worker
 // and traineddata, the Host Grotesk font — is vendored under /public/vendor, never
-// a CDN, so font-src/style-src stay same-origin.
+// a CDN, so font-src/style-src stay same-origin. Substitute faces (Liberation,
+// Noto, script packs) live under /public/vendor/fonts and are resolved offline.
 const isDev = process.env.NODE_ENV !== "production";
 
 const contentSecurityPolicy = [

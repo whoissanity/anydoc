@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useEditorStore } from "@/store/editor-store";
-import { withRenderLock } from "@/lib/document/render-queue";
+import { withRenderLock, renderPageWithTimeout } from "@/lib/document/render-queue";
 import { reorderPages } from "@/lib/document/pages";
 import { reloadFromBytes } from "@/lib/document/document-service";
 import { downloadBlob } from "@/lib/document/load";
-import { exportCommentsToFdf, type CommentThread } from "@/lib/security/pdf-security";
-import { X, Download } from "lucide-react";
+import { exportCommentsToFdf, importCommentsFromFdf, type CommentThread } from "@/lib/security/pdf-security";
+import { X, Download, Upload } from "lucide-react";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 export function LeftPanes() {
+  const { t } = useI18n();
   const leftPane = useEditorStore((s) => s.leftPane);
   const setLeftPane = useEditorStore((s) => s.setLeftPane);
   const pageCount = useEditorStore((s) => s.pageCount);
@@ -19,6 +21,7 @@ export function LeftPanes() {
   const layers = useEditorStore((s) => s.layers);
   const comments = useEditorStore((s) => s.comments);
   const addComment = useEditorStore((s) => s.addComment);
+  const setComments = useEditorStore((s) => s.setComments);
   const updateCommentStatus = useEditorStore((s) => s.updateCommentStatus);
   const addCommentReply = useEditorStore((s) => s.addCommentReply);
   const pdfDocProxy = useEditorStore((s) => s.pdfDocProxy);
@@ -37,7 +40,7 @@ export function LeftPanes() {
       const doc = pdfDocProxy as {
         getPage: (n: number) => Promise<{
           getViewport: (o: { scale: number }) => { width: number; height: number };
-          render: (o: unknown) => { promise: Promise<void> };
+          render: (o: unknown) => { promise: Promise<void>; cancel: () => void };
         }>;
       };
       const next: Record<number, string> = {};
@@ -51,7 +54,14 @@ export function LeftPanes() {
           canvas.height = viewport.height;
           const ctx = canvas.getContext("2d");
           if (!ctx) continue;
-          await withRenderLock(() => page.render({ canvasContext: ctx, viewport }).promise);
+          await withRenderLock(() =>
+            renderPageWithTimeout(
+              page,
+              { canvasContext: ctx, viewport },
+              10_000,
+              `Page ${i} thumbnail timed out`
+            )
+          );
           next[i] = canvas.toDataURL("image/jpeg", 0.7);
           if (i % 4 === 0) setThumbs({ ...next });
         } catch {
@@ -68,19 +78,34 @@ export function LeftPanes() {
 
   if (leftPane === "none" || !pageCount) return null;
 
+  async function handleImportComments(file: File) {
+    try {
+      const xml = await file.text();
+      const before = useEditorStore.getState().comments.length;
+      const next = importCommentsFromFdf(xml, useEditorStore.getState().comments);
+      setComments(next);
+      useEditorStore
+        .getState()
+        .setStatus(`Imported ${Math.max(0, next.length - before)} comments`);
+    } catch {
+      useEditorStore.getState().setStatus("Could not import that XFDF file");
+    }
+  }
+
   const paneTitle =
     leftPane === "thumbnails"
-      ? "Thumbnails"
+      ? t("pane.thumbnails")
       : leftPane === "outline"
-      ? "Table of Contents"
+      ? t("pane.outline")
       : leftPane === "attachments"
-      ? "Attachments"
+      ? t("pane.attachments")
       : leftPane === "comments"
-      ? "Comments & Review"
-      : "Layers";
+      ? t("pane.comments")
+      : t("pane.layers");
 
   return (
     <aside
+      className="editor-pane"
       style={{
         width: "var(--pane-w)",
         backgroundColor: "var(--c-surface)",
@@ -110,7 +135,7 @@ export function LeftPanes() {
         <button
           type="button"
           onClick={() => setLeftPane("none")}
-          title="Close panel"
+          title={t("pane.close")}
           style={{
             color: "var(--c-text-muted)",
             display: "grid",
@@ -142,7 +167,7 @@ export function LeftPanes() {
                 const to = n - 1;
                 const [moved] = order.splice(from, 1);
                 order.splice(to, 0, moved);
-                useEditorStore.getState().setStatus("Reordering pages…");
+                useEditorStore.getState().setStatus(t("pane.reordering"));
                 const next = await reorderPages(bytes, order);
                 await reloadFromBytes(next);
                 setDragFrom(null);
@@ -166,7 +191,7 @@ export function LeftPanes() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={thumbs[n]}
-                  alt={`Page ${n}`}
+                  alt={t("pane.pageAlt", { page: n })}
                   style={{
                     width: "100%",
                     display: "block",
@@ -188,7 +213,7 @@ export function LeftPanes() {
                     fontFamily: "var(--font-mono)",
                   }}
                 >
-                  Page {n}
+                  {t("common.page")} {n}
                 </div>
               )}
               <div
@@ -219,7 +244,7 @@ export function LeftPanes() {
           <div>
             {!attachments.length && (
               <p style={{ color: "var(--c-text-muted)", fontSize: 12, padding: "8px 4px" }}>
-                No embedded attachments.
+                {t("pane.noAttachments")}
               </p>
             )}
             {attachments.map((a) => (
@@ -264,7 +289,7 @@ export function LeftPanes() {
           <div>
             {!layers.length && (
               <p style={{ color: "var(--c-text-muted)", fontSize: 12, padding: "8px 4px" }}>
-                No layers found in this document.
+                {t("pane.noLayers")}
               </p>
             )}
             {layers.map((l) => (
@@ -295,7 +320,7 @@ export function LeftPanes() {
         {leftPane === "comments" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "flex", gap: 4, overflowX: "auto", paddingBottom: 4 }}>
-              {["All", "Open", "Accepted", "Rejected"].map((st) => (
+              {(["All", "Open", "Accepted", "Rejected"] as const).map((st) => (
                 <button
                   key={st}
                   type="button"
@@ -311,7 +336,13 @@ export function LeftPanes() {
                     border: "none",
                   }}
                 >
-                  {st}
+                  {st === "All"
+                    ? t("pane.all")
+                    : st === "Open"
+                    ? t("pane.statusOpen")
+                    : st === "Accepted"
+                    ? t("pane.statusAccepted")
+                    : t("pane.statusRejected")}
                 </button>
               ))}
             </div>
@@ -325,7 +356,7 @@ export function LeftPanes() {
               }}
             >
               <textarea
-                placeholder="Add sticky review comment on this page…"
+                placeholder={t("pane.addComment")}
                 value={newCommentText}
                 onChange={(e) => setNewCommentText(e.target.value)}
                 style={{
@@ -343,7 +374,7 @@ export function LeftPanes() {
               />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
                 <span style={{ fontSize: 10, color: "var(--c-text-subtle)", fontFamily: "var(--font-mono)" }}>
-                  Page {currentPage}
+                  {t("common.page")} {currentPage}
                 </span>
                 <button
                   type="button"
@@ -351,8 +382,8 @@ export function LeftPanes() {
                   onClick={() => {
                     addComment({
                       id: `c-${Date.now()}`,
-                      author: "Reviewer",
-                      date: "Just now",
+                      author: t("pane.reviewer"),
+                      date: t("pane.justNow"),
                       pageIndex: currentPage - 1,
                       text: newCommentText.trim(),
                       type: "sticky",
@@ -364,7 +395,7 @@ export function LeftPanes() {
                   className="btn-primary-rounded"
                   style={{ height: 24, padding: "0 10px", fontSize: 11 }}
                 >
-                  Post Note
+                  {t("pane.postNote")}
                 </button>
               </div>
             </div>
@@ -430,10 +461,10 @@ export function LeftPanes() {
                         cursor: "pointer",
                       }}
                     >
-                      <option value="Open">Open</option>
-                      <option value="Accepted">Accepted</option>
-                      <option value="Rejected">Rejected</option>
-                      <option value="Cancelled">Cancelled</option>
+                      <option value="Open">{t("pane.statusOpen")}</option>
+                      <option value="Accepted">{t("pane.statusAccepted")}</option>
+                      <option value="Rejected">{t("pane.statusRejected")}</option>
+                      <option value="Cancelled">{t("pane.statusCancelled")}</option>
                     </select>
                   </div>
 
@@ -460,15 +491,15 @@ export function LeftPanes() {
 
                   <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
                     <input
-                      placeholder="Reply…"
+                      placeholder={t("pane.replyPlaceholder")}
                       value={replyText[c.id] || ""}
                       onChange={(e) => setReplyText({ ...replyText, [c.id]: e.target.value })}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && replyText[c.id]?.trim()) {
                           addCommentReply(c.id, {
-                            author: "Me",
+                            author: t("pane.me"),
                             text: replyText[c.id].trim(),
-                            date: "Just now",
+                            date: t("pane.justNow"),
                           });
                           setReplyText({ ...replyText, [c.id]: "" });
                         }
@@ -489,9 +520,9 @@ export function LeftPanes() {
                       onClick={() => {
                         if (!replyText[c.id]?.trim()) return;
                         addCommentReply(c.id, {
-                          author: "Me",
+                          author: t("pane.me"),
                           text: replyText[c.id].trim(),
-                          date: "Just now",
+                          date: t("pane.justNow"),
                         });
                         setReplyText({ ...replyText, [c.id]: "" });
                       }}
@@ -504,7 +535,7 @@ export function LeftPanes() {
                         fontWeight: 600,
                       }}
                     >
-                      Reply
+                      {t("pane.reply")}
                     </button>
                   </div>
                 </div>
@@ -525,9 +556,35 @@ export function LeftPanes() {
                 }}
               >
                 <Download size={13} strokeWidth={1.85} />
-                <span>Export Comments (XFDF)</span>
+                <span>{t("pane.exportComments")}</span>
               </button>
             )}
+
+            <label
+              className="btn-secondary-rounded"
+              style={{
+                width: "100%",
+                marginTop: comments.length > 0 ? 6 : 8,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                cursor: "pointer",
+              }}
+            >
+              <Upload size={13} strokeWidth={1.85} />
+              <span>Import XFDF</span>
+              <input
+                type="file"
+                accept=".xfdf,application/vnd.adobe.xfdf"
+                hidden
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleImportComments(file);
+                  e.currentTarget.value = "";
+                }}
+              />
+            </label>
           </div>
         )}
       </div>
@@ -544,10 +601,11 @@ function OutlineTree({
   onNavigate: (pageIndex: number | null) => void;
   depth?: number;
 }) {
+  const { t } = useI18n();
   if (!items.length && depth === 0) {
     return (
       <p style={{ color: "var(--c-text-muted)", fontSize: 12, padding: "8px 4px" }}>
-        No bookmarks or outline present.
+        {t("pane.noBookmarks")}
       </p>
     );
   }

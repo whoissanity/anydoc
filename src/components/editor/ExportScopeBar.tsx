@@ -2,15 +2,18 @@
 
 import { useEditorStore } from "@/store/editor-store";
 import { resolveExportScope, type ExportScopeMode } from "@/lib/export/scope";
+import { useI18n } from "@/components/providers/I18nProvider";
+import type { MessageKey } from "@/lib/i18n/messages";
 
-const MODES: Array<{ mode: ExportScopeMode; label: string }> = [
-  { mode: "all", label: "All pages" },
-  { mode: "current", label: "Current page" },
-  { mode: "range", label: "Range" },
+const MODES: Array<{ mode: ExportScopeMode; labelKey: MessageKey }> = [
+  { mode: "all", labelKey: "scope.allPages" },
+  { mode: "current", labelKey: "scope.currentPage" },
+  { mode: "range", labelKey: "scope.range" },
 ];
 
 /** Chooses which pages converted formats cover; state lives in the store so surfaces stay in sync. */
 export function ExportScopeBar() {
+  const { t } = useI18n();
   const scope = useEditorStore((s) => s.exportScope);
   const setExportScope = useEditorStore((s) => s.setExportScope);
   const currentPage = useEditorStore((s) => s.currentPage);
@@ -41,9 +44,9 @@ export function ExportScopeBar() {
             marginRight: 4,
           }}
         >
-          Export scope
+          {t("scope.label")}
         </span>
-        {MODES.map(({ mode, label }) => {
+        {MODES.map(({ mode, labelKey }) => {
           const active = scope.mode === mode;
           return (
             <button
@@ -62,7 +65,9 @@ export function ExportScopeBar() {
                 color: active ? "var(--c-primary)" : "var(--c-text-muted)",
               }}
             >
-              {mode === "current" ? `Page ${Math.min(Math.max(currentPage, 1), pageCount)}` : label}
+              {mode === "current"
+                ? t("scope.pageN", { page: Math.min(Math.max(currentPage, 1), pageCount) })
+                : t(labelKey)}
             </button>
           );
         })}
@@ -71,7 +76,7 @@ export function ExportScopeBar() {
             value={scope.range}
             onChange={(e) => setExportScope({ range: e.target.value })}
             placeholder="1-3, 5"
-            aria-label="Page range"
+            aria-label={t("scope.rangeLabel")}
             spellCheck={false}
             style={{
               width: 110,
@@ -93,7 +98,7 @@ export function ExportScopeBar() {
           color: resolved.error ? "var(--danger)" : "var(--c-text-muted)",
         }}
       >
-        {resolved.error ?? `${resolved.label} · exported in your browser`}
+        {resolved.error ?? t("scope.exportedLocally", { label: resolved.label })}
       </div>
     </div>
   );

@@ -1,10 +1,24 @@
 import type { AttachmentItem, LayerItem, OutlineItem } from "@/lib/types";
+import type { CommentThread } from "@/lib/security/pdf-security";
+import { splitCommentReplies } from "@/lib/security/comments";
 import { safeDownloadName } from "@/lib/security/filename";
+import { isDetachedBytes } from "@/lib/document/validate";
+import { createTrackedObjectUrl, revokeTrackedObjectUrl } from "@/lib/storage/object-urls";
 
 /** Bound the parser's memory: 100 MB is far past any realistic PDF. */
 const MAX_PDF_BYTES = 100 * 1024 * 1024;
 /** A malformed PDF must not pin a tab forever on a promise that never settles. */
 const PARSE_TIMEOUT_MS = 60_000;
+
+/** Raised when a PDF is encrypted and no usable password was supplied. */
+export class PdfPasswordRequiredError extends Error {
+  readonly code: 1 | 2;
+  constructor(code: 1 | 2) {
+    super(code === 2 ? "Incorrect password" : "Password required");
+    this.name = "PasswordException";
+    this.code = code;
+  }
+}
 
 export async function getPdfjs() {
   const pdfjs = await import("pdfjs-dist");
@@ -18,25 +32,41 @@ export async function getPdfjs() {
   return pdfjs;
 }
 
-export async function loadPdfDocument(data: ArrayBuffer | Uint8Array) {
+export async function loadPdfDocument(
+  data: ArrayBuffer | Uint8Array,
+  options: { password?: string } = {}
+) {
   const pdfjs = await getPdfjs();
   const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
 
-  if (bytes.byteLength === 0) throw new Error("This file is empty");
+  if (isDetachedBytes(bytes)) {
+    throw new Error("This file is empty or detached — reopen the file");
+  }
   if (bytes.byteLength > MAX_PDF_BYTES) {
     throw new Error("This PDF is larger than the 100 MB limit");
   }
 
+  let transfer: Uint8Array;
+  try {
+    transfer = bytes.slice();
+  } catch {
+    throw new Error("This file is empty or detached — reopen the file");
+  }
+
+  const vendorBase = `${window.location.origin}/vendor/pdfjs`;
   const loadingTask = pdfjs.getDocument({
-    data: bytes,
-    // cmaps vendored under /public/vendor/pdfjs: CJK documents must resolve character maps with no network.
-    cMapUrl: `${window.location.origin}/vendor/pdfjs/cmaps/`,
+    data: transfer,
+    // cmaps + standard-font metrics are vendored under /public/vendor/pdfjs —
+    // never leave these unconfigured (PDF.js would otherwise probe CDNs).
+    cMapUrl: `${vendorBase}/cmaps/`,
     cMapPacked: true,
+    standardFontDataUrl: `${vendorBase}/standard_fonts/`,
     enableXfa: true,
     // PDF.js would eval glyph/font programs when on; a document must never reach eval()/new Function.
     isEvalSupported: false,
     stopAtErrors: false,
     disableAutoFetch: true,
+    password: options.password,
   });
 
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -51,6 +81,11 @@ export async function loadPdfDocument(data: ArrayBuffer | Uint8Array) {
   } catch (error) {
     // Tear the worker down so a hostile document cannot keep running.
     void loadingTask.destroy().catch(() => undefined);
+    const code = (error as { code?: number }).code;
+    if ((error as { name?: string }).name === "PasswordException" || code === 1 || code === 2) {
+      const supplied = typeof options.password === "string" && options.password.length > 0;
+      throw new PdfPasswordRequiredError(supplied ? 2 : 1);
+    }
     throw error;
   } finally {
     if (timer !== undefined) clearTimeout(timer);
@@ -136,6 +171,100 @@ export async function extractLayers(doc: {
   }
 }
 
+interface PdfAnnotationLike {
+  annotationType?: number;
+  contentsObj?: { str?: string };
+  titleObj?: { str?: string };
+  date?: string;
+  id?: string;
+}
+
+const COMMENT_TYPES: Record<number, CommentThread["type"]> = {
+  1: "sticky",
+  3: "callout",
+  9: "highlight",
+  10: "underline",
+  12: "strikethrough",
+};
+
+const COMMENT_EXTRACTION_BUDGET_MS = 10_000;
+const COMMENT_EXTRACTION_MAX_THREADS = 2_000;
+const COMMENT_PAGE_TIMEOUT_MS = 2_000;
+
+function annotationsWithTimeout(page: {
+  getAnnotations: () => Promise<PdfAnnotationLike[]>;
+}): Promise<PdfAnnotationLike[]> {
+  const pending = page.getAnnotations();
+  // The losing promise must not surface as an unhandled rejection after the race settles.
+  pending.catch(() => undefined);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error("Annotation read timed out")),
+      COMMENT_PAGE_TIMEOUT_MS
+    );
+  });
+  return Promise.race([pending, timeout]).finally(() => {
+    if (timer !== undefined) clearTimeout(timer);
+  });
+}
+
+/**
+ * Reads text notes and markup annotations from a PDF.js document. Replies written by
+ * this app are encoded in the note contents; foreign comments are imported as-is.
+ * A large document is capped so a hostile or enormous file cannot stall the editor.
+ */
+export async function extractComments(doc: {
+  numPages: number;
+  getPage: (pageNumber: number) => Promise<{
+    getAnnotations: () => Promise<PdfAnnotationLike[]>;
+  }>;
+}): Promise<CommentThread[]> {
+  const comments: CommentThread[] = [];
+  const startedAt = Date.now();
+
+  for (let pageIndex = 0; pageIndex < doc.numPages; pageIndex += 1) {
+    if (comments.length >= COMMENT_EXTRACTION_MAX_THREADS) break;
+    if (Date.now() - startedAt > COMMENT_EXTRACTION_BUDGET_MS) break;
+
+    let page: { getAnnotations: () => Promise<PdfAnnotationLike[]> };
+    try {
+      page = await doc.getPage(pageIndex + 1);
+    } catch {
+      continue;
+    }
+
+    let annotations: PdfAnnotationLike[];
+    try {
+      annotations = await annotationsWithTimeout(page);
+    } catch {
+      continue;
+    }
+
+    for (const annotation of annotations) {
+      const type = COMMENT_TYPES[annotation.annotationType ?? -1];
+      if (!type) continue;
+
+      const contents = annotation.contentsObj?.str ?? "";
+      const { text, replies } = splitCommentReplies(contents);
+      if (!text.trim() && replies.length === 0) continue;
+
+      comments.push({
+        id: annotation.id || `pdf-comment-${pageIndex + 1}-${comments.length + 1}`,
+        author: annotation.titleObj?.str || "Unknown",
+        date: annotation.date || new Date().toISOString(),
+        pageIndex,
+        text,
+        type,
+        status: "Open",
+        replies,
+      });
+    }
+  }
+
+  return comments;
+}
+
 export function bytesToBase64(bytes: Uint8Array): string {
   let binary = "";
   const chunk = 0x8000;
@@ -146,7 +275,8 @@ export function bytesToBase64(bytes: Uint8Array): string {
 }
 
 export function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
+  // Tracked so "delete draft now" can release any object URL still pinning this blob.
+  const url = createTrackedObjectUrl(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = safeDownloadName(filename, "document");
@@ -156,5 +286,5 @@ export function downloadBlob(blob: Blob, filename: string) {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  setTimeout(() => revokeTrackedObjectUrl(url), 60_000);
 }

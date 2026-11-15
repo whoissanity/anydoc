@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 /* Host Grotesk is vendored under public/vendor/fonts (SIL OFL 1.1): no page load reaches a font CDN. */
+/* Liberation / Noto commercial-name aliases are also injected at runtime by
+   registerVendoredFontFaces() so HTML/EPUB/Markdown and the PDF text layer
+   resolve Arial/Times/Courier to local OFL substitutes without a network hop. */
 @font-face {
   font-family: "Host Grotesk";
   font-style: normal;
@@ -134,9 +137,9 @@
   --page-width-regular: 1200px;
 
   /* Typography */
-  --font-display: "Host Grotesk", -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-  --font-body: "Host Grotesk", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-  --font-ui: "Host Grotesk", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --font-display: "Host Grotesk", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+  --font-body: "Host Grotesk", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --font-ui: "Host Grotesk", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   --font-mono: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
   --headline-size: 59.8px;
 
@@ -364,6 +367,10 @@ button {
 .document-canvas {
   background-color: var(--c-bg);
   flex: 1;
+  /* Let the viewer shrink below its content so it — not the clipped parent — owns the
+     scrollport; without this the hand tool has no scroll range to move. */
+  min-width: 0;
+  min-height: 0;
   overflow: auto;
   position: relative;
 }
@@ -510,6 +517,141 @@ button {
   box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.35);
 }
 
+/* Form properties inspector: grouped, Acrobat-style field editor */
+.inspector-group + .inspector-group {
+  margin-top: 12px;
+  padding-top: 12px;
+  box-shadow: inset 0 1px 0 var(--c-border-subtle);
+}
+
+.inspector-group-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-text-subtle);
+  margin-bottom: 9px;
+}
+
+.field-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-accent-text);
+  background-color: var(--c-primary-subtle);
+  text-transform: capitalize;
+}
+
+.script-editor-bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.script-editor-bar > span:first-child {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.script-editor-hint {
+  font-size: 10px;
+  color: var(--c-text-subtle);
+  font-family: var(--font-mono);
+}
+
+.script-editor {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  padding: 10px 12px;
+  background-color: var(--c-bg-sunken);
+  color: var(--c-text);
+  border: 1px solid var(--c-border-subtle);
+  border-radius: var(--radius-input);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.6;
+  tab-size: 2;
+  outline: none;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.32);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.script-editor::placeholder {
+  color: var(--c-text-subtle);
+}
+
+.script-editor:focus {
+  border-color: var(--c-primary);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.32), 0 0 0 3px var(--c-primary-subtle);
+}
+
+/* Floating font / size / spacing controls shown while a text object is being edited */
+.text-style-bar {
+  position: absolute;
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: var(--radius-btn);
+  background: var(--c-surface-raised);
+  border: 1px solid var(--c-border-subtle);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.24);
+  color: var(--c-text);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.text-style-bar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  color: var(--c-icon-idle);
+}
+
+.text-style-bar button:hover {
+  background: var(--c-hover);
+  color: var(--c-icon-hover);
+}
+
+.text-style-value {
+  min-width: 24px;
+  text-align: center;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text);
+}
+
+.text-style-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-text-subtle);
+  padding-left: 4px;
+}
+
+.text-style-sep {
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  background: var(--c-border-subtle);
+}
+
 .object-selection {
   position: absolute;
   border: 1.5px solid var(--c-primary);
@@ -525,4 +667,195 @@ button {
 
 .spin {
   animation: spin 0.9s linear infinite;
+}
+
+/* ---- Right-to-left languages (Arabic, Persian, Urdu) ---- */
+[dir="rtl"] body {
+  text-align: right;
+}
+
+[dir="rtl"] input[type="text"],
+[dir="rtl"] input[type="search"],
+[dir="rtl"] input[type="number"],
+[dir="rtl"] textarea {
+  text-align: right;
+}
+
+/* The PDF page surface and its overlays use LTR page coordinates, never mirror them. */
+[dir="rtl"] .object-selection,
+[dir="rtl"] .text-style-bar {
+  direction: ltr;
+}
+
+/* ---- Responsive editor shell ---- */
+.editor-shell {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.mobile-nav {
+  display: none;
+}
+
+.mobile-pane-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.38);
+}
+
+@media (max-width: 1000px) {
+  .editor-inspector {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --pane-w: 220px;
+    --rail-w: 44px;
+  }
+
+  .editor-pane {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: var(--rail-w);
+    width: min(86vw, 320px);
+    z-index: 70;
+    box-shadow: var(--shadow-raised);
+  }
+
+  .mobile-pane-backdrop {
+    display: block;
+  }
+}
+
+@media (max-width: 700px) {
+  :root {
+    --bar-h: 46px;
+  }
+
+  .editor-shell {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+
+  .editor-rail {
+    display: none;
+  }
+
+  .editor-statusbar {
+    display: none;
+  }
+
+  .editor-pane {
+    left: 0;
+    bottom: calc(56px + env(safe-area-inset-bottom));
+    width: min(88vw, 340px);
+  }
+
+  .mobile-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 80;
+    height: calc(56px + env(safe-area-inset-bottom));
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    gap: 2px;
+    padding: 6px 8px env(safe-area-inset-bottom);
+    background: var(--c-surface);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    box-shadow: var(--shadow-divider-t);
+    user-select: none;
+  }
+
+  .document-canvas {
+    padding: 8px 6px 24px !important;
+  }
+
+  .workbench-bar-row {
+    justify-content: flex-start !important;
+    gap: 6px;
+  }
+
+  .workbench-bar-row > * {
+    flex-shrink: 0;
+  }
+
+  .workbench-bar-row button {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .workbench-bar-actions {
+    margin-left: auto;
+  }
+
+  .workbench-bar-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .workbench-toolstrip {
+    display: none !important;
+  }
+
+  .reflow-header {
+    padding: 8px 12px !important;
+  }
+}
+
+@media (min-width: 701px) {
+  .mobile-nav,
+  .mobile-pane-backdrop {
+    display: none !important;
+  }
+}
+
+/* Touch-primary devices get custom pan/pinch even when the viewport is wide. */
+@media (any-pointer: coarse) {
+  .document-canvas {
+    touch-action: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .document-canvas {
+    touch-action: none;
+  }
+
+  .pdf-text-layer {
+    pointer-events: none;
+  }
+}
+
+.reflow-view {
+  overscroll-behavior: contain;
+}
+
+.search-popover {
+  scrollbar-width: thin;
+}
+
+.search-popover mark {
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.pdf-text-layer .search-hit {
+  background: rgba(255, 214, 0, 0.32);
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav button {
+    transition: none;
+  }
 }

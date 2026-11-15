@@ -1,12 +1,13 @@
 import {
   PDFDocument,
-  StandardFonts,
   rgb,
   degrees,
   PageSizes,
+  type PDFFont,
   type PDFPage,
 } from "pdf-lib";
 import type { BatesOptions } from "@/lib/types";
+import { createAppFontCache, embedAppFont } from "@/lib/text/embedded-fonts";
 
 export async function loadPdfLib(bytes: Uint8Array) {
   return PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false });
@@ -51,8 +52,14 @@ export function describeRange(indices: number[]): string {
     : pages.join(", ");
 }
 
-export async function savePdfBytes(doc: PDFDocument): Promise<Uint8Array> {
-  return doc.save({ useObjectStreams: true });
+export async function savePdfBytes(
+  doc: PDFDocument,
+  options: { updateFieldAppearances?: boolean } = {}
+): Promise<Uint8Array> {
+  return doc.save({
+    useObjectStreams: true,
+    updateFieldAppearances: options.updateFieldAppearances ?? true,
+  });
 }
 
 /** Blanks title, author, subject, keywords, creator, producer and both dates; shared by the scrub, sanitize and redact paths. */
@@ -178,7 +185,7 @@ export async function applyBatesNumbering(
 ): Promise<Uint8Array> {
   if (!opts.enabled) return bytes;
   const doc = await loadPdfLib(bytes);
-  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const font = await embedAppFont(doc);
   const pages = doc.getPages();
   pages.forEach((page, i) => {
     const text = batesText(opts, i + 1);
@@ -231,7 +238,7 @@ export async function createPdfFromImages(
 export async function createPdfFromText(text: string, title = "Document"): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(title);
-  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const fontFor = createAppFontCache(doc);
   const margin = 50;
   const fontSize = 12;
   const lineHeight = 16;
@@ -239,24 +246,30 @@ export async function createPdfFromText(text: string, title = "Document"): Promi
   const pageHeight = PageSizes.Letter[1];
   const maxWidth = pageWidth - margin * 2;
 
-  const words = text.replace(/\r\n/g, "\n").split(/(\s+)/);
-  const lines: string[] = [];
-  let current = "";
-  for (const word of words) {
-    if (word === "\n") {
-      lines.push(current);
-      current = "";
+  const lines: Array<{ text: string; font: PDFFont | null }> = [];
+  for (const rawLine of text.replace(/\r\n/g, "\n").split("\n")) {
+    if (!rawLine.trim()) {
+      lines.push({ text: "", font: null });
       continue;
     }
-    const test = current + word;
-    if (font.widthOfTextAtSize(test, fontSize) > maxWidth && current) {
-      lines.push(current);
-      current = word.trimStart();
-    } else {
-      current = test;
+
+    // Pick the script face for this line, then wrap with the same face so
+    // measurement matches what is drawn. The cache avoids an IndexedDB lookup
+    // for every line of the same script.
+    const font = await fontFor.get({ text: rawLine });
+    let current = "";
+    for (const word of rawLine.split(/(\s+)/)) {
+      if (!word) continue;
+      const test = current + word;
+      if (font.widthOfTextAtSize(test, fontSize) > maxWidth && current) {
+        lines.push({ text: current, font });
+        current = word.trimStart();
+      } else {
+        current = test;
+      }
     }
+    lines.push({ text: current, font });
   }
-  if (current) lines.push(current);
 
   let page = doc.addPage(PageSizes.Letter);
   let y = pageHeight - margin;
@@ -265,7 +278,15 @@ export async function createPdfFromText(text: string, title = "Document"): Promi
       page = doc.addPage(PageSizes.Letter);
       y = pageHeight - margin;
     }
-    page.drawText(line, { x: margin, y, size: fontSize, font, color: rgb(0, 0, 0) });
+    if (line.text && line.font) {
+      page.drawText(line.text, {
+        x: margin,
+        y,
+        size: fontSize,
+        font: line.font,
+        color: rgb(0, 0, 0),
+      });
+    }
     y -= lineHeight;
   }
   return savePdfBytes(doc);

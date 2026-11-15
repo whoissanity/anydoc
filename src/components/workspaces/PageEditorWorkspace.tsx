@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useEditorStore } from "@/store/editor-store";
-import { withRenderLock } from "@/lib/document/render-queue";
+import { withRenderLock, renderPageWithTimeout } from "@/lib/document/render-queue";
 import {
   rotatePage,
   deletePages,
@@ -45,7 +45,7 @@ export default function PageEditorWorkspace() {
       const doc = pdfDocProxy as {
         getPage: (n: number) => Promise<{
           getViewport: (o: { scale: number }) => { width: number; height: number };
-          render: (o: unknown) => { promise: Promise<void> };
+          render: (o: unknown) => { promise: Promise<void>; cancel: () => void };
         }>;
       };
 
@@ -60,7 +60,14 @@ export default function PageEditorWorkspace() {
           canvas.height = viewport.height;
           const ctx = canvas.getContext("2d");
           if (!ctx) continue;
-          await withRenderLock(() => page.render({ canvasContext: ctx, viewport }).promise);
+          await withRenderLock(() =>
+            renderPageWithTimeout(
+              page,
+              { canvasContext: ctx, viewport },
+              10_000,
+              `Page ${i} thumbnail timed out`
+            )
+          );
           result[i] = canvas.toDataURL("image/jpeg", 0.75);
           if (i % 3 === 0) setThumbnails({ ...result });
         } catch {

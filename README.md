@@ -49,7 +49,7 @@ These aren't marketing lines — every one of them is a mechanism you can go rea
 - **No third-party SDKs.** No analytics, error-tracking, or marketing scripts anywhere in the dependency tree. Check `package.json` yourself.
 - **No CDN, ever.** PDF.js's character maps, the Tesseract OCR worker + WASM core + language data, and the Host Grotesk typeface are all vendored under [`public/vendor`](public/vendor) and served same-origin. No page load reaches a font, script, or data CDN.
 - **A CSP that actually enforces it.** [`next.config.ts`](next.config.ts) ships a real `Content-Security-Policy` — `default-src 'self'`, `connect-src 'self' blob: data:`, `font-src 'self' data:`, `object-src 'none'`, `frame-ancestors 'none'` — plus HSTS and a locked-down `Permissions-Policy`. If a future change ever tried to sneak in a third-party request, the browser itself would block it.
-- **Zero client persistence.** No `localStorage`, `sessionStorage`, `IndexedDB`, or cookies. Your document's bytes and any extracted text live only in memory, for the life of the tab.
+- **Local draft, only if you want it.** If autosave is enabled (the default), your most recent unsaved draft — the document bytes plus annotations, form fields, placed images/text and OCR results — is kept in your browser's IndexedDB so a crash doesn't cost you your work. It never leaves your device, it expires after 48 hours, and it clears automatically when you save or close the document cleanly. Turn it off or wipe it any time from the **Local draft** control in the editor. No cookies, no `localStorage`, no analytics storage.
 - **No server at all for your files.** Creating a PDF from Word, Excel, PowerPoint, OpenDocument, EPUB, RTF or HTML used to POST to an API route; both paths now run entirely in the browser (`src/lib/document/office-extract.ts` + `text-to-pdf.ts`). There is no upload endpoint left to send a document to.
 - **Untrusted input handling.** Every upload is validated by its file signature (`%PDF-`, PNG/JPEG magic bytes) — never by its extension or the browser's reported MIME type.
 - **Real redaction.** A redacted area is re-rendered to a lossless raster and burned into the pixel stream. There's no recoverable text layer underneath and no bypassable transparent box on top.
@@ -74,7 +74,9 @@ Every conversion runs in your browser. The Office → PDF and HTML → PDF paths
 
 **Inspect** — a one-page document health report, a suggested file name, and version comparison with changed pages highlighted.
 
-**On-device OCR** — Tesseract runs locally to add a text layer to scans; exports fall back to OCR text when a page has no native text layer.
+**On-device OCR** — Tesseract runs locally to add a text layer to scans. All 23 recognition languages ship with the app, the language defaults to the UI language and can be changed independently, pages are straightened when a scan is skewed, low-confidence noise is filtered, and exports fall back to OCR text when a page has no native text layer.
+
+**23 languages** — the interface is translated into English, Spanish, French, German, Portuguese, Italian, Dutch, Polish, Russian, Ukrainian, Turkish, Chinese (Simplified and Traditional), Japanese, Korean, Vietnamese, Indonesian, Thai, Hindi, Bengali, Arabic, Persian, and Urdu. The choice is stored locally, right-to-left layouts are supported, and non-Latin text is baked with local system fonts so it never renders as missing-glyph boxes.
 
 **Convert & export** — Word (`.docx`), PowerPoint (`.pptx`), Excel (`.xlsx`), OpenDocument (`.odt` / `.ods`), Rich Text (`.rtf`), Markdown, HTML, plain text, EPUB 3, CSV, JSON, PNG, and JPEG.
 
@@ -97,7 +99,7 @@ Every conversion runs in your browser. The Office → PDF and HTML → PDF paths
 anydoc/
 ├── public/vendor/            # every third-party asset, vendored same-origin
 │   ├── pdfjs/cmaps/          #   PDF.js CJK character maps (.bcmap)
-│   ├── tesseract/            #   OCR worker, WASM core, English traineddata
+│   ├── tesseract/            #   OCR worker, WASM core, 23 traineddata packs
 │   └── fonts/                #   Host Grotesk (SIL OFL 1.1), self-hosted
 ├── src/
 │   ├── app/

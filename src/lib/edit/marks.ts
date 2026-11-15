@@ -1,5 +1,6 @@
-import { StandardFonts, degrees, rgb, type PDFDocument, type PDFFont, type PDFPage } from "pdf-lib";
+import { degrees, rgb, type PDFDocument, type PDFFont, type PDFPage } from "pdf-lib";
 import { loadPdfLib, savePdfBytes } from "@/lib/document/pages";
+import { embedAppFont, type EmbeddedFontFamily } from "@/lib/text/embedded-fonts";
 
 export type Position9 =
   | "top-left"
@@ -37,17 +38,24 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   };
 }
 
+function embeddedFamily(family: FontFamily): EmbeddedFontFamily {
+  if (family === "TimesRoman") return "serif";
+  if (family === "Courier") return "mono";
+  return "sans";
+}
+
 async function embedFamily(
   doc: PDFDocument,
   family: FontFamily,
   bold: boolean
 ): Promise<PDFFont> {
-  const map: Record<FontFamily, [StandardFonts, StandardFonts]> = {
-    Helvetica: [StandardFonts.Helvetica, StandardFonts.HelveticaBold],
-    TimesRoman: [StandardFonts.TimesRoman, StandardFonts.TimesRomanBold],
-    Courier: [StandardFonts.Courier, StandardFonts.CourierBold],
-  };
-  return doc.embedFont(bold ? map[family][1] : map[family][0]);
+  // Resolve through the offline matcher so Helvetica/Times/Courier map onto
+  // Liberation substitutes and are embedded — never PDF base-14 references.
+  return embedAppFont(doc, {
+    family: embeddedFamily(family),
+    name: family,
+    bold,
+  });
 }
 
 function anchor(

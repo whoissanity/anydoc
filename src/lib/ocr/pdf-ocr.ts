@@ -1,60 +1,74 @@
 "use client";
 
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, rgb } from "pdf-lib";
 import { getPdfjs } from "@/lib/document/load";
 import { savePdfBytes } from "@/lib/document/pages";
 import { canvasToPngBytes } from "@/lib/document/raster";
 import { withRenderLock } from "@/lib/document/render-queue";
-import { tesseractAssetPaths } from "@/lib/ocr/tesseract-assets";
+import { createOcrWorker } from "@/lib/ocr/worker";
+import { MIN_WORD_CONFIDENCE } from "@/lib/ocr/normalize";
+import { deskewCanvas, estimateSkewAngle, mapWordFromDeskew } from "@/lib/ocr/deskew";
+import { embedAppFont } from "@/lib/text/embedded-fonts";
 
 /** Recognition scale: the page is rasterised at 2× before Tesseract sees it. */
 const OCR_SCALE = 2;
+const OCR_DPI = 72 * OCR_SCALE;
 
 export async function runOcrOnPdf(
   bytes: Uint8Array,
   languages = "eng",
   onProgress?: (msg: string) => void
 ): Promise<Uint8Array> {
-  const { createWorker } = await import("tesseract.js");
   const pdfjs = await getPdfjs();
   const srcDoc = await pdfjs.getDocument({ data: bytes.slice() }).promise;
   const out = await PDFDocument.create();
-  const font = await out.embedFont(StandardFonts.Helvetica);
+  const font = await embedAppFont(out);
 
   let currentPage = 1;
   // v6 rule: without `blocks: true` the worker returns text only, so no word boxes exist to place.
-  const worker = await createWorker(languages, 1, {
-    ...tesseractAssetPaths(),
-    logger: (message) => {
-      if (message.status === "recognizing text" && message.progress) {
-        onProgress?.(`OCR page ${currentPage}: ${Math.round(message.progress * 100)}%`);
-      }
-    },
+  const worker = await createOcrWorker(languages, (message) => {
+    if (message.status === "recognizing text" && message.progress) {
+      onProgress?.(`OCR page ${currentPage}: ${Math.round(message.progress * 100)}%`);
+    }
   });
 
   try {
+    // Without an explicit dpi Tesseract assumes 70 and misjudges glyph size.
+    await worker.setParameters({
+      user_defined_dpi: String(OCR_DPI),
+      preserve_interword_spaces: "1",
+    });
     for (let i = 1; i <= srcDoc.numPages; i++) {
       currentPage = i;
       onProgress?.(`OCR page ${i} / ${srcDoc.numPages}…`);
       const page = await srcDoc.getPage(i);
       const viewport = page.getViewport({ scale: OCR_SCALE });
       const canvas = document.createElement("canvas");
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
+      canvas.width = Math.round(viewport.width);
+      canvas.height = Math.round(viewport.height);
       const ctx = canvas.getContext("2d");
       if (!ctx) continue;
+      // An unpainted canvas is transparent black, which Tesseract cannot read.
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       await withRenderLock(() => page.render({ canvasContext: ctx, viewport }).promise);
 
-      const result = await worker.recognize(canvas, {}, { text: true, blocks: true });
+      const skewAngle = estimateSkewAngle(canvas);
+      const ocrCanvas = skewAngle ? deskewCanvas(canvas, skewAngle) : canvas;
+      const result = await worker.recognize(ocrCanvas, {}, { text: true, blocks: true });
 
-      // Embed page image + invisible searchable text
+      // Embed the original page image + invisible searchable text.
       const pngBytes = await canvasToPngBytes(canvas);
       const embedded = await out.embedPng(pngBytes);
       const pdfPage = out.addPage([embedded.width / OCR_SCALE, embedded.height / OCR_SCALE]);
       const { width, height } = pdfPage.getSize();
       pdfPage.drawImage(embedded, { x: 0, y: 0, width, height });
 
-      type WordLike = { text: string; bbox: { x0: number; y0: number; x1: number; y1: number } };
+      type WordLike = {
+        text: string;
+        confidence?: number;
+        bbox: { x0: number; y0: number; x1: number; y1: number };
+      };
       const words: WordLike[] = [];
       const blocks = result.data.blocks || [];
       for (const block of blocks) {
@@ -85,7 +99,30 @@ export async function runOcrOnPdf(
       }
       for (const word of words) {
         if (!word.text?.trim()) continue;
-        const bbox = word.bbox;
+        if ((word.confidence ?? 0) < MIN_WORD_CONFIDENCE) continue;
+        let bbox = word.bbox;
+        if (skewAngle) {
+          // Recognition ran on the straightened bitmap; move the box back to the page.
+          const mapped = mapWordFromDeskew(
+            {
+              text: word.text,
+              confidence: word.confidence ?? 0,
+              x: bbox.x0 / canvas.width,
+              y: bbox.y0 / canvas.height,
+              width: (bbox.x1 - bbox.x0) / canvas.width,
+              height: (bbox.y1 - bbox.y0) / canvas.height,
+            },
+            skewAngle,
+            canvas.width,
+            canvas.height
+          );
+          bbox = {
+            x0: mapped.x * canvas.width,
+            y0: mapped.y * canvas.height,
+            x1: (mapped.x + mapped.width) * canvas.width,
+            y1: (mapped.y + mapped.height) * canvas.height,
+          };
+        }
         const scaleX = width / canvas.width;
         const scaleY = height / canvas.height;
         const w = (bbox.x1 - bbox.x0) * scaleX;

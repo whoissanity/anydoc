@@ -1,0 +1,11 @@
+Noto Sans, Noto Sans Arabic, Noto Sans Devanagari, Noto Sans SC,
+Noto Sans JP, and Noto Sans KR are copyright Google Inc. and licensed
+under the SIL Open Font License, Version 1.1.
+
+This Font Software is licensed under the SIL Open Font License,
+Version 1.1. See OFL.txt in this directory for the full license text.
+The OFL is also available with a FAQ at: https://scripts.sil.org/OFL
+
+These faces are vendored under public/vendor/fonts (and scripts/) for
+offline same-origin use. The application never fetches fonts from a
+CDN or other network origin at runtime.

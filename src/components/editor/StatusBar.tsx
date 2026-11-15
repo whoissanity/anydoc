@@ -2,8 +2,11 @@
 
 import { useEditorStore } from "@/store/editor-store";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useI18n } from "@/components/providers/I18nProvider";
+import { PrivacyPill } from "@/components/shared/PrivacyPill";
 
 export function StatusBar() {
+  const { t } = useI18n();
   const currentPage = useEditorStore((s) => s.currentPage);
   const pageCount = useEditorStore((s) => s.pageCount);
   const zoom = useEditorStore((s) => s.zoom);
@@ -42,7 +45,7 @@ export function StatusBar() {
           }}
         />
         <span style={{ fontSize: 12, fontWeight: 600, color: "var(--c-text)" }}>
-          {dirty ? "Modified" : "Ready"}
+          {dirty ? t("status.modified") : t("status.ready")}
         </span>
       </div>
 
@@ -86,7 +89,7 @@ export function StatusBar() {
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <button
               type="button"
-              title="Previous page"
+              title={t("status.previousPage")}
               disabled={currentPage <= 1}
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               style={{
@@ -142,7 +145,7 @@ export function StatusBar() {
 
             <button
               type="button"
-              title="Next page"
+              title={t("status.nextPage")}
               disabled={currentPage >= pageCount}
               onClick={() => setCurrentPage(Math.min(pageCount, currentPage + 1))}
               style={{
@@ -162,6 +165,8 @@ export function StatusBar() {
           </div>
         </>
       )}
+
+      <PrivacyPill />
     </footer>
   );
 }

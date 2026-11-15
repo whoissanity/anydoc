@@ -16,6 +16,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import type { LeftPane } from "@/lib/types";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 interface RailButtonProps {
   label: string;
@@ -107,6 +108,7 @@ function RailButton({
 }
 
 export function Rail({ onOpenFile }: { onOpenFile?: () => void }) {
+  const { t } = useI18n();
   const currentView = useEditorStore((s) => s.currentView);
   const setCurrentView = useEditorStore((s) => s.setCurrentView);
   const leftPane = useEditorStore((s) => s.leftPane);
@@ -129,7 +131,8 @@ export function Rail({ onOpenFile }: { onOpenFile?: () => void }) {
 
   return (
     <nav
-      aria-label="Workspace navigation rail"
+      className="editor-rail"
+      aria-label={t("rail.nav")}
       style={{
         width: "var(--rail-w)",
         backgroundColor: "var(--c-surface)",
@@ -147,7 +150,7 @@ export function Rail({ onOpenFile }: { onOpenFile?: () => void }) {
       }}
     >
       <RailButton
-        label="Open PDF"
+        label={t("nav.openDocument")}
         icon={<FolderOpen size={20} strokeWidth={1.85} />}
         onClick={() => {
           if (onOpenFile) {
@@ -169,14 +172,14 @@ export function Rail({ onOpenFile }: { onOpenFile?: () => void }) {
       />
 
       <RailButton
-        label="Document Viewer"
+        label={t("rail.viewer")}
         icon={<BookOpen size={20} strokeWidth={1.85} />}
         active={currentView === "viewer"}
         disabled={!hasDoc}
         onClick={() => setCurrentView("viewer")}
       />
       <RailButton
-        label="Organize Pages"
+        label={t("rail.organize")}
         icon={<LayoutGrid size={20} strokeWidth={1.85} />}
         active={currentView === "pageEditor"}
         disabled={!hasDoc}
@@ -184,7 +187,7 @@ export function Rail({ onOpenFile }: { onOpenFile?: () => void }) {
         onClick={() => setCurrentView("pageEditor")}
       />
       <RailButton
-        label="Tools & Convert"
+        label={t("rail.tools")}
         icon={<Wrench size={20} strokeWidth={1.85} />}
         active={currentView === "fileEditor"}
         disabled={!hasDoc}
@@ -201,35 +204,35 @@ export function Rail({ onOpenFile }: { onOpenFile?: () => void }) {
       />
 
       <RailButton
-        label="Thumbnails"
+        label={t("pane.thumbnails")}
         icon={<PanelLeft size={20} strokeWidth={1.85} />}
         active={leftPane === "thumbnails" && currentView === "viewer"}
         disabled={!hasDoc || currentView !== "viewer"}
         onClick={() => togglePane("thumbnails")}
       />
       <RailButton
-        label="Table of Contents"
+        label={t("pane.outline")}
         icon={<Bookmark size={20} strokeWidth={1.85} />}
         active={leftPane === "outline" && currentView === "viewer"}
         disabled={!hasDoc || currentView !== "viewer"}
         onClick={() => togglePane("outline")}
       />
       <RailButton
-        label="Attachments"
+        label={t("pane.attachments")}
         icon={<Paperclip size={20} strokeWidth={1.85} />}
         active={leftPane === "attachments" && currentView === "viewer"}
         disabled={!hasDoc || currentView !== "viewer"}
         onClick={() => togglePane("attachments")}
       />
       <RailButton
-        label="Layers"
+        label={t("pane.layers")}
         icon={<Layers size={20} strokeWidth={1.85} />}
         active={leftPane === "layers" && currentView === "viewer"}
         disabled={!hasDoc || currentView !== "viewer"}
         onClick={() => togglePane("layers")}
       />
       <RailButton
-        label="Comments & Review"
+        label={t("pane.comments")}
         icon={<MessageSquare size={20} strokeWidth={1.85} />}
         active={leftPane === "comments" && currentView === "viewer"}
         disabled={!hasDoc || currentView !== "viewer"}
@@ -239,7 +242,7 @@ export function Rail({ onOpenFile }: { onOpenFile?: () => void }) {
 
       <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 4 }}>
         <RailButton
-          label={theme === "dark" ? "Switch to light theme" : "Switch to Apple dark mode"}
+          label={theme === "dark" ? t("rail.themeLight") : t("rail.themeDark")}
           icon={
             theme === "dark" ? (
               <Sun size={20} strokeWidth={1.85} style={{ color: "var(--c-accent-orange)" }} />
@@ -250,7 +253,7 @@ export function Rail({ onOpenFile }: { onOpenFile?: () => void }) {
           onClick={toggleTheme}
         />
         <RailButton
-          label="Properties & Inspector"
+          label={t("rail.inspector")}
           icon={<SlidersHorizontal size={20} strokeWidth={1.85} />}
           active={showInspector}
           disabled={!hasDoc}

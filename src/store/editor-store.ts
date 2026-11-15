@@ -15,6 +15,7 @@ import type {
   RedactBox,
   StickyNoteItem,
   TextEditSession,
+  TextObject,
   Tool,
   ViewMode,
   WorkbenchView,
@@ -22,6 +23,30 @@ import type {
 } from "@/lib/types";
 import type { CommentThread } from "@/lib/security/pdf-security";
 import { DEFAULT_EXPORT_SCOPE, type ExportScope } from "@/lib/export/scope";
+import type { Locale } from "@/lib/i18n/config";
+import { ocrLanguageForLocale, savedOcrLanguage, saveOcrLanguage } from "@/lib/ocr/languages";
+
+export interface EditorHistoryEntry {
+  label: string;
+  bytes: Uint8Array;
+  fileName: string | null;
+  pageCount: number;
+  currentPage: number;
+  zoom: number;
+  zoomMode: ZoomMode;
+  viewMode: ViewMode;
+  annotations: AnnotationItem[];
+  stickyNotes: StickyNoteItem[];
+  comments: CommentThread[];
+  formFields: FormFieldDraft[];
+  ocrPages: OcrPage[];
+  images: ImageObject[];
+  redactions: RedactBox[];
+  textObjects: TextObject[];
+  imagesScanned: boolean;
+  bates: BatesOptions;
+  dirty: boolean;
+}
 
 interface EditorState {
   theme: "dark" | "light";
@@ -29,6 +54,8 @@ interface EditorState {
   fileSize: number;
   pdfBytes: Uint8Array | null;
   pdfDocProxy: unknown | null;
+  /** True when the bytes were decrypted from a password-protected PDF; blocks plaintext drafts. */
+  pdfDecrypted: boolean;
   pageCount: number;
   currentPage: number;
   zoom: number;
@@ -41,9 +68,18 @@ interface EditorState {
   activeToolId: string | null;
   searchQuery: string;
   dirty: boolean;
+  /** Structural edit journal; entries hold bytes plus overlay state. */
+  history: EditorHistoryEntry[];
+  historyIndex: number;
+  pushHistory: (label: string) => void;
+  clearHistory: () => void;
   outline: OutlineItem[];
   attachments: AttachmentItem[];
   layers: LayerItem[];
+  /** PDF.js optional-content config, kept out of the persisted draft. */
+  optionalContentConfig: unknown | null;
+  /** Bumped when a layer is toggled so canvas pages repaint with the new OCG state. */
+  layerVersion: number;
   comments: CommentThread[];
   formFields: FormFieldDraft[];
   selectedFormId: string | null;
@@ -56,9 +92,15 @@ interface EditorState {
   imagesScanned: boolean;
   setImagesScanned: (scanned: boolean) => void;
   textEdit: TextEditSession | null;
+  /** Placed text boxes that are still overlays; they are baked on save/export. */
+  textObjects: TextObject[];
+  selectedTextId: string | null;
   annotations: AnnotationItem[];
   stickyNotes: StickyNoteItem[];
   ocrPages: OcrPage[];
+  ocrLanguage: string;
+  /** Applies the saved OCR choice, or follows the UI language until one is made. */
+  hydrateOcrLanguage: (locale: Locale) => void;
   annotColor: string;
   underlineColor: string;
   strikeColor: string;
@@ -81,6 +123,10 @@ interface EditorState {
     bytes: Uint8Array;
     pageCount: number;
     proxy: unknown;
+    /** Reloading the same document after an edit must not reset the viewer. */
+    preserveView?: boolean;
+    /** True when the source PDF was decrypted after a password prompt. */
+    decrypted?: boolean;
   }) => void;
   setPdfBytes: (bytes: Uint8Array) => void;
   setCurrentPage: (page: number) => void;
@@ -99,6 +145,7 @@ interface EditorState {
   setAttachments: (items: AttachmentItem[]) => void;
   setLayers: (layers: LayerItem[]) => void;
   toggleLayer: (id: string) => void;
+  setOptionalContentConfig: (config: unknown | null) => void;
   setComments: (comments: CommentThread[]) => void;
   addComment: (comment: CommentThread) => void;
   updateCommentStatus: (id: string, status: CommentThread["status"]) => void;
@@ -115,12 +162,19 @@ interface EditorState {
   removeImage: (id: string) => void;
   setSelectedImageId: (id: string | null) => void;
   setTextEdit: (session: TextEditSession | null) => void;
+  setTextObjects: (objects: TextObject[]) => void;
+  addTextObject: (object: TextObject) => void;
+  updateTextObject: (id: string, patch: Partial<TextObject>) => void;
+  removeTextObject: (id: string) => void;
+  setSelectedTextId: (id: string | null) => void;
   addAnnotation: (a: AnnotationItem) => void;
+  removeAnnotations: (ids: string[]) => void;
   clearAnnotations: (pageIndex?: number) => void;
   clearMarkup: () => void;
   addStickyNote: (note: StickyNoteItem) => void;
   removeStickyNote: (id: string) => void;
   setOcrPage: (page: OcrPage) => void;
+  setOcrLanguage: (lang: string) => void;
   clearOcrPages: () => void;
   setAnnotColor: (color: string) => void;
   setAnnotColorFor: (type: "highlight" | "underline" | "strikethrough", color: string) => void;
@@ -134,6 +188,18 @@ interface EditorState {
   setDirty: (dirty: boolean) => void;
   setShowInspector: (show: boolean) => void;
   setShowWelcome: (show: boolean) => void;
+  /** Rehydrates the unsaved edit state recovered from a local draft. */
+  hydrateFromDraft: (payload: {
+    annotations: AnnotationItem[];
+    stickyNotes: StickyNoteItem[];
+    formFields: FormFieldDraft[];
+    ocrPages: OcrPage[];
+    images: ImageObject[];
+    redactions: RedactBox[];
+    comments?: CommentThread[];
+    textObjects?: TextObject[];
+    dirty?: boolean;
+  }) => void;
   resetDocument: () => void;
 }
 
@@ -153,6 +219,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   fileSize: 0,
   pdfBytes: null,
   pdfDocProxy: null,
+  pdfDecrypted: false,
   pageCount: 0,
   currentPage: 1,
   zoom: 1,
@@ -165,9 +232,13 @@ export const useEditorStore = create<EditorState>((set) => ({
   activeToolId: null,
   searchQuery: "",
   dirty: false,
+  history: [],
+  historyIndex: -1,
   outline: [],
   attachments: [],
   layers: [],
+  optionalContentConfig: null,
+  layerVersion: 0,
   comments: [],
   formFields: [],
   selectedFormId: null,
@@ -178,12 +249,15 @@ export const useEditorStore = create<EditorState>((set) => ({
   imagesScanned: false,
   setImagesScanned: (imagesScanned) => set({ imagesScanned }),
   textEdit: null,
+  textObjects: [],
+  selectedTextId: null,
   annotations: [],
   stickyNotes: [],
   ocrPages: [],
+  ocrLanguage: "eng",
   annotColor: "#FFD600",
-  underlineColor: "#1A64FF",
-  strikeColor: "#DC3232",
+  underlineColor: "#000000",
+  strikeColor: "#000000",
   markupOpacity: 0.42,
   redactions: [],
   bates: defaultBates,
@@ -196,19 +270,23 @@ export const useEditorStore = create<EditorState>((set) => ({
   setTheme: (theme) => set({ theme }),
   toggleTheme: () => set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
 
-  setPdf: ({ fileName, bytes, pageCount, proxy }) =>
-    set({
+  setPdf: ({ fileName, bytes, pageCount, proxy, preserveView, decrypted }) =>
+    set((s) => ({
       fileName,
       fileSize: bytes.byteLength,
       pdfBytes: bytes,
       pageCount,
       pdfDocProxy: proxy,
-      currentPage: 1,
+      pdfDecrypted: preserveView ? s.pdfDecrypted : Boolean(decrypted),
+      // An edit-triggered reload keeps the page and zoom the user is working at; only a
+      // genuinely new document goes back to page 1 and re-arms fit-to-view.
+      currentPage: preserveView ? Math.min(s.currentPage, pageCount) : 1,
       currentView: "viewer",
-      // Re-arm the fit-to-view logic so the viewer frames a freshly opened PDF.
-      zoom: 1,
-      zoomMode: "fit-width",
+      zoom: preserveView ? s.zoom : 1,
+      zoomMode: preserveView ? s.zoomMode : "fit-width",
       dirty: false,
+      history: preserveView ? s.history : [],
+      historyIndex: preserveView ? s.historyIndex : -1,
       showWelcome: false,
       formFields: [],
       images: [],
@@ -217,12 +295,18 @@ export const useEditorStore = create<EditorState>((set) => ({
       renderedPages: 0,
       imagesScanned: false,
       textEdit: null,
+      // Placed text survives an edit-triggered reload; only a new document clears it.
+      textObjects: preserveView ? s.textObjects : [],
+      selectedTextId: preserveView ? s.selectedTextId : null,
       annotations: [],
       stickyNotes: [],
+      comments: preserveView ? s.comments : [],
+      optionalContentConfig: preserveView ? s.optionalContentConfig : null,
+      layerVersion: preserveView ? s.layerVersion : 0,
       ocrPages: [],
       redactions: [],
       statusMessage: `Opened ${fileName}`,
-    }),
+    })),
   setPdfBytes: (bytes) =>
     set({ pdfBytes: bytes, fileSize: bytes.byteLength, dirty: true }),
   setCurrentPage: (page) => set({ currentPage: page }),
@@ -241,10 +325,20 @@ export const useEditorStore = create<EditorState>((set) => ({
   setOutline: (outline) => set({ outline }),
   setAttachments: (attachments) => set({ attachments }),
   setLayers: (layers) => set({ layers }),
+  setOptionalContentConfig: (optionalContentConfig) => set({ optionalContentConfig }),
   toggleLayer: (id) =>
-    set((s) => ({
-      layers: s.layers.map((l) => (l.id === id ? { ...l, visible: !l.visible } : l)),
-    })),
+    set((s) => {
+      const layer = s.layers.find((l) => l.id === id);
+      const visible = layer ? !layer.visible : false;
+      const config = s.optionalContentConfig as
+        | { setGroup?: (id: string, visible: boolean) => void }
+        | null;
+      config?.setGroup?.(id, visible);
+      return {
+        layers: s.layers.map((l) => (l.id === id ? { ...l, visible } : l)),
+        layerVersion: s.layerVersion + 1,
+      };
+    }),
   setComments: (comments) => set({ comments, dirty: true }),
   addComment: (comment) => set((s) => ({ comments: [comment, ...s.comments], dirty: true })),
   updateCommentStatus: (id, status) =>
@@ -301,8 +395,32 @@ export const useEditorStore = create<EditorState>((set) => ({
     })),
   setSelectedImageId: (selectedImageId) => set({ selectedImageId }),
   setTextEdit: (textEdit) => set({ textEdit }),
+  setTextObjects: (textObjects) => set({ textObjects }),
+  addTextObject: (object) =>
+    set((s) => ({
+      textObjects: [...s.textObjects, object],
+      selectedTextId: object.id,
+      dirty: true,
+    })),
+  updateTextObject: (id, patch) =>
+    set((s) => ({
+      textObjects: s.textObjects.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+      dirty: true,
+    })),
+  removeTextObject: (id) =>
+    set((s) => ({
+      textObjects: s.textObjects.filter((t) => t.id !== id),
+      selectedTextId: s.selectedTextId === id ? null : s.selectedTextId,
+      dirty: true,
+    })),
+  setSelectedTextId: (selectedTextId) => set({ selectedTextId }),
   addAnnotation: (a) =>
     set((s) => ({ annotations: [...s.annotations, a], dirty: true })),
+  removeAnnotations: (ids) =>
+    set((s) => ({
+      annotations: s.annotations.filter((a) => !ids.includes(a.id)),
+      dirty: true,
+    })),
   clearAnnotations: (pageIndex) =>
     set((s) => ({
       annotations:
@@ -320,6 +438,12 @@ export const useEditorStore = create<EditorState>((set) => ({
     set((s) => ({
       ocrPages: [...s.ocrPages.filter((p) => p.pageIndex !== page.pageIndex), page],
     })),
+  hydrateOcrLanguage: (locale) =>
+    set({ ocrLanguage: savedOcrLanguage() ?? ocrLanguageForLocale(locale) }),
+  setOcrLanguage: (ocrLanguage) => {
+    saveOcrLanguage(ocrLanguage);
+    set({ ocrLanguage });
+  },
   clearOcrPages: () => set({ ocrPages: [] }),
   setAnnotColor: (annotColor) => set({ annotColor }),
   setAnnotColorFor: (type, color) =>
@@ -336,6 +460,40 @@ export const useEditorStore = create<EditorState>((set) => ({
     set((s) => ({ redactions: s.redactions.filter((r) => r.id !== id) })),
   clearRedactions: () => set({ redactions: [] }),
   setBates: (patch) => set((s) => ({ bates: { ...s.bates, ...patch } })),
+  pushHistory: (label) =>
+    set((s) => {
+      if (!s.pdfBytes) return {};
+      const entry: EditorHistoryEntry = {
+        label,
+        bytes: s.pdfBytes.slice(),
+        fileName: s.fileName,
+        pageCount: s.pageCount,
+        currentPage: s.currentPage,
+        zoom: s.zoom,
+        zoomMode: s.zoomMode,
+        viewMode: s.viewMode,
+        annotations: s.annotations,
+        stickyNotes: s.stickyNotes,
+        comments: s.comments,
+        formFields: s.formFields,
+        ocrPages: s.ocrPages,
+        images: s.images,
+        redactions: s.redactions,
+        textObjects: s.textObjects,
+        imagesScanned: s.imagesScanned,
+        bates: { ...s.bates },
+        dirty: s.dirty,
+      };
+      const entries = s.history.slice(0, s.historyIndex + 1);
+      entries.push(entry);
+      let totalBytes = entries.reduce((sum, item) => sum + item.bytes.byteLength, 0);
+      while (entries.length > 20 || (totalBytes > 50 * 1024 * 1024 && entries.length > 1)) {
+        const removed = entries.shift();
+        if (removed) totalBytes -= removed.bytes.byteLength;
+      }
+      return { history: entries, historyIndex: entries.length - 1 };
+    }),
+  clearHistory: () => set({ history: [], historyIndex: -1 }),
   setStatus: (statusMessage) => set({ statusMessage }),
   setExportProgress: (exportProgress) => set({ exportProgress }),
   setExportScope: (patch) =>
@@ -343,22 +501,47 @@ export const useEditorStore = create<EditorState>((set) => ({
   setDirty: (dirty) => set({ dirty }),
   setShowInspector: (showInspector) => set({ showInspector }),
   setShowWelcome: (showWelcome) => set({ showWelcome }),
+  hydrateFromDraft: (payload) =>
+    set({
+      annotations: payload.annotations,
+      stickyNotes: payload.stickyNotes,
+      formFields: payload.formFields,
+      ocrPages: payload.ocrPages,
+      images: payload.images,
+      redactions: payload.redactions,
+      comments: payload.comments ?? [],
+      textObjects: payload.textObjects ?? [],
+      selectedFormId: null,
+      selectedImageId: null,
+      selectedTextId: null,
+      dirty: payload.dirty ?? true,
+      history: [],
+      historyIndex: -1,
+    }),
   resetDocument: () =>
     set({
       fileName: null,
       fileSize: 0,
-      pdfBytes: null,
-      pdfDocProxy: null,
-      pageCount: 0,
+    pdfBytes: null,
+    pdfDocProxy: null,
+    pdfDecrypted: false,
+    pageCount: 0,
       currentPage: 1,
       currentView: "viewer",
       dirty: false,
+      history: [],
+      historyIndex: -1,
       outline: [],
       attachments: [],
       layers: [],
+      optionalContentConfig: null,
+      layerVersion: 0,
+      comments: [],
       formFields: [],
       images: [],
       textEdit: null,
+      textObjects: [],
+      selectedTextId: null,
       annotations: [],
       stickyNotes: [],
       ocrPages: [],

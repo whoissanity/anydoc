@@ -1,8 +1,9 @@
 "use client";
 
-import { PDFDocument, PDFName, rgb, StandardFonts, degrees } from "pdf-lib";
+import { PDFDocument, PDFName, rgb, degrees } from "pdf-lib";
 import { loadPdfLib, savePdfBytes, stripMetadata } from "@/lib/document/pages";
 import { canvasToJpegBytes, canvasToPngBytes, loadRasterDoc, renderRasterPage } from "@/lib/document/raster";
+import { embedAppFont } from "@/lib/text/embedded-fonts";
 
 export interface RedactRegion {
   pageIndex: number;
@@ -235,7 +236,10 @@ export async function sanitizePdf(
   if (opts.forms !== "keep") {
     if (opts.forms === "flatten" && has("AcroForm")) {
       try {
-        doc.getForm().flatten({ updateFieldAppearances: true });
+        const form = doc.getForm();
+        const font = await embedAppFont(doc);
+        form.updateFieldAppearances(font);
+        form.flatten({ updateFieldAppearances: false });
         report.push("Flattened form fields into page content");
       } catch {
         report.push("Form flattening was not possible; fields left untouched");
@@ -277,7 +281,10 @@ export async function removeAnnotations(
   const doc = await loadPdfLib(bytes);
   if (opts.flattenForms) {
     try {
-      doc.getForm().flatten({ updateFieldAppearances: true });
+      const form = doc.getForm();
+      const font = await embedAppFont(doc);
+      form.updateFieldAppearances(font);
+      form.flatten({ updateFieldAppearances: false });
     } catch {
       // no fillable fields
     }
@@ -362,7 +369,10 @@ export async function flattenPdf(
   const notes: string[] = [];
   if (opts.forms) {
     try {
-      doc.getForm().flatten({ updateFieldAppearances: true });
+      const form = doc.getForm();
+      const font = await embedAppFont(doc);
+      form.updateFieldAppearances(font);
+      form.flatten({ updateFieldAppearances: false });
       notes.push("form fields flattened");
     } catch {
       notes.push("no fillable fields found");
@@ -527,7 +537,7 @@ export async function addTextStamp(
   }
 ): Promise<Uint8Array> {
   const doc = await loadPdfLib(bytes);
-  const font = await doc.embedFont(StandardFonts.HelveticaBold);
+  const font = await embedAppFont(doc, { bold: true });
   const hex = opts.color.replace("#", "");
   const num = parseInt(hex.length === 3 ? hex.replace(/./g, (c) => c + c) : hex, 16);
   const color = rgb(((num >> 16) & 255) / 255, ((num >> 8) & 255) / 255, (num & 255) / 255);

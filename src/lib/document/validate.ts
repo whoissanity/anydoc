@@ -28,6 +28,16 @@ function formatMb(bytes: number): string {
   return `${Math.round(bytes / (1024 * 1024))} MB`;
 }
 
+export function isDetachedBytes(bytes: Uint8Array): boolean {
+  try {
+    if (bytes.byteLength === 0) return true;
+    const buffer = (bytes as Uint8Array & { buffer?: ArrayBuffer }).buffer;
+    return buffer != null && buffer.byteLength === 0;
+  } catch {
+    return false;
+  }
+}
+
 /** The PDF spec permits the `%PDF-` header anywhere in the first 1024 bytes. */
 export function looksLikePdf(bytes: Uint8Array): boolean {
   return ascii(bytes.subarray(0, 1024)).includes(PDF_HEADER);
@@ -42,8 +52,8 @@ export function detectImageKind(bytes: Uint8Array): ImageKind | null {
 
 /** Rejects PDF bytes that fail the size or header check. */
 export function assertPdfBytes(bytes: Uint8Array, label = "This file"): void {
-  if (bytes.byteLength === 0) {
-    throw new Error(`${label} is empty`);
+  if (isDetachedBytes(bytes)) {
+    throw new Error(`${label} is empty or detached — reopen the file`);
   }
   if (bytes.byteLength > MAX_PDF_BYTES) {
     throw new Error(`${label} is larger than the ${formatMb(MAX_PDF_BYTES)} limit`);

@@ -4,8 +4,10 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { useEditorStore } from "@/store/editor-store";
 import { TOOL_CATEGORIES, TOOLS, type ToolCategory } from "@/lib/tools/catalog";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 export function ToolGallery() {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<ToolCategory | "All">("All");
   const setActiveDialog = useEditorStore((s) => s.setActiveDialog);
@@ -30,7 +32,7 @@ export function ToolGallery() {
 
   const unavailable = TOOLS.filter((tool) => !!tool.unavailable);
 
-  const open = (toolId: string, opensDialog?: "redact" | "bates") => {
+  const open = (toolId: string, opensDialog?: "redact" | "bates" | "batch" | "pdfa" | "ocr") => {
     if (opensDialog) {
       setActiveDialog(opensDialog);
       return;
@@ -60,11 +62,12 @@ export function ToolGallery() {
       >
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--c-text)" }}>
-            All document tools
+            {t("gallery.title")}
           </div>
           <div style={{ fontSize: 11.5, color: "var(--c-text-muted)", marginTop: 2 }}>
-            {TOOLS.filter((t) => !t.unavailable).length} tools — searchable and grouped, like a real
-            workbench
+            {t("gallery.subtitle", {
+              count: TOOLS.filter((tool) => !tool.unavailable).length,
+            })}
           </div>
         </div>
 
@@ -84,7 +87,7 @@ export function ToolGallery() {
           <input
             type="text"
             value={query}
-            placeholder="Search tools…"
+            placeholder={t("gallery.search")}
             onChange={(e) => setQuery(e.target.value)}
             style={{
               width: "100%",
@@ -118,7 +121,7 @@ export function ToolGallery() {
               transition: "all 120ms ease",
             }}
           >
-            {cat}
+            {cat === "All" ? t("gallery.all") : cat}
           </button>
         ))}
       </div>
@@ -207,7 +210,7 @@ export function ToolGallery() {
 
       {!shown.length && (
         <div style={{ fontSize: 12, color: "var(--c-text-muted)", padding: "12px 2px" }}>
-          No tool matches “{query}”.
+          {t("gallery.noMatches", { query })}
         </div>
       )}
 
@@ -223,7 +226,7 @@ export function ToolGallery() {
               marginBottom: 8,
             }}
           >
-            Needs the desktop engine
+            {t("gallery.desktopOnly")}
           </div>
           {unavailable.map((tool) => (
             <div

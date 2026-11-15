@@ -6,6 +6,14 @@ import JSZip from "jszip";
  * Client-side document → text extraction: the browser twin of the removed from-office
  * route. Every guard the server enforced travels with it — size caps, magic-byte checks,
  * XML DTD rejection and archive-bomb limits now protect the user's tab instead of a host.
+ *
+ * Font-resolution scope (decision a — do not silently pretend otherwise):
+ * Word / PowerPoint / OpenDocument / RTF / EPUB import paths extract plain text only
+ * (mammoth.extractRawText, XML text nodes, RTF strip). Font-family and style metadata
+ * are discarded, so the universal font matcher has nothing to act on for these formats
+ * today. This phase covers PDF render/edit + live HTML/CSS surfaces; preserving
+ * font-family through Office import is a separate, future piece of work — not a
+ * partial delivery of (b). CSV, JSON, and raw images remain explicitly fontless.
  */
 
 const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;

@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const recognize = vi.fn();
 const terminate = vi.fn();
-const createWorker = vi.fn(async () => ({ recognize, terminate }));
+const setParameters = vi.fn(async () => undefined);
+const createWorker = vi.fn(async () => ({ recognize, terminate, setParameters }));
 const destroy = vi.fn(async () => undefined);
 const renderPage = vi.fn(() => ({ promise: Promise.resolve() }));
 let pageSize = { width: 612, height: 792 };
@@ -73,6 +74,37 @@ describe("recognizeCanvas", () => {
     expect(output).toMatchObject({ text: true, blocks: true });
   });
 
+  it("tells Tesseract the real bitmap resolution", async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 400;
+    canvas.height = 200;
+
+    await recognizeCanvas(canvas, 0, { dpi: 144 });
+
+    expect(setParameters).toHaveBeenCalledWith(
+      expect.objectContaining({ user_defined_dpi: "144" })
+    );
+  });
+
+  it("drops words below the confidence floor", async () => {
+    recognize.mockResolvedValueOnce({
+      data: {
+        text: "Hello",
+        words: [
+          { text: "Hello", confidence: 92, bbox: { x0: 10, y0: 10, x1: 70, y1: 30 } },
+          { text: "noise", confidence: 12, bbox: { x0: 80, y0: 10, x1: 130, y1: 30 } },
+        ],
+      },
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = 200;
+    canvas.height = 100;
+
+    const page = await recognizeCanvas(canvas, 0);
+
+    expect(page.words.map((word) => word.text)).toEqual(["Hello"]);
+  });
+
   it("maps word boxes from the blocks hierarchy into 0–1 page coordinates", async () => {
     const canvas = document.createElement("canvas");
     canvas.width = 400;
@@ -109,26 +141,27 @@ describe("recognizeCanvas", () => {
 
 describe("renderPageForOcr", () => {
   it("renders at 2x so glyphs are big enough to recognise", async () => {
-    const canvas = await renderPageForOcr(new Uint8Array([1]), 1);
+    const rendered = await renderPageForOcr(new Uint8Array([1]), 1);
 
-    expect(canvas.width).toBe(1224);
-    expect(canvas.height).toBe(1584);
+    expect(rendered.canvas.width).toBe(1224);
+    expect(rendered.canvas.height).toBe(1584);
+    expect(rendered.dpi).toBe(144);
     expect(renderPage).toHaveBeenCalledTimes(1);
   });
 
   it("never renders below 2x even when asked for less", async () => {
-    const canvas = await renderPageForOcr(new Uint8Array([1]), 1, 0.3);
+    const rendered = await renderPageForOcr(new Uint8Array([1]), 1, 0.3);
 
-    expect(canvas.width).toBe(1224);
+    expect(rendered.canvas.width).toBe(1224);
   });
 
   it("caps the rendered bitmap for an oversized page", async () => {
     pageSize = { width: 10000, height: 10000 };
 
-    const canvas = await renderPageForOcr(new Uint8Array([1]), 1, 2);
+    const rendered = await renderPageForOcr(new Uint8Array([1]), 1, 2);
 
-    expect(Math.max(canvas.width, canvas.height)).toBeLessThanOrEqual(4096);
-    expect(Math.min(canvas.width, canvas.height)).toBeGreaterThan(0);
+    expect(Math.max(rendered.canvas.width, rendered.canvas.height)).toBeLessThanOrEqual(4096);
+    expect(Math.min(rendered.canvas.width, rendered.canvas.height)).toBeGreaterThan(0);
   });
 
   it("releases its private document instance", async () => {

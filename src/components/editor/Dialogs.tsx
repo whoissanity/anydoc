@@ -6,6 +6,7 @@ import { readPdfFile } from "@/lib/document/validate";
 import { EXPORT_SECTIONS, formatMeta } from "@/lib/export/catalog";
 import { FormatIcon } from "@/components/shared/FormatIcon";
 import { ExportScopeBar } from "./ExportScopeBar";
+import { useI18n } from "@/components/providers/I18nProvider";
 import type { BatesOptions } from "@/lib/types";
 import {
   X,
@@ -97,6 +98,131 @@ export function Modal({
   );
 }
 
+export function OpenPasswordDialog({
+  fileName,
+  busy,
+  error,
+  onCancel,
+  onSubmit,
+}: {
+  fileName: string;
+  busy: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onSubmit: (password: string) => void;
+}) {
+  const { t } = useI18n();
+  const [password, setPassword] = useState("");
+
+  return (
+    <Modal
+      title={t("dialog.openPassword.title")}
+      onClose={() => {
+        if (!busy) onCancel();
+      }}
+    >
+      <p
+        style={{
+          margin: 0,
+          color: "var(--c-text-muted)",
+          fontSize: 12,
+          lineHeight: 1.55,
+        }}
+      >
+        {t("dialog.openPassword.body", { name: fileName })}
+      </p>
+      <label style={lab} htmlFor="anydoc-open-password">
+        {t("dialog.openPassword.password")}
+      </label>
+      <input
+        id="anydoc-open-password"
+        style={inp}
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && password && !busy) onSubmit(password);
+        }}
+        placeholder={t("dialog.openPassword.placeholder")}
+        aria-label={t("dialog.openPassword.password")}
+        autoComplete="current-password"
+        autoFocus
+        spellCheck={false}
+      />
+      <p
+        style={{
+          margin: "8px 0 0",
+          color: "var(--c-text-muted)",
+          fontSize: 11,
+          lineHeight: 1.5,
+        }}
+      >
+        {t("dialog.openPassword.privacy")}
+      </p>
+      {error && (
+        <div
+          role="alert"
+          style={{
+            marginTop: 10,
+            padding: "7px 9px",
+            borderRadius: "var(--radius-btn)",
+            backgroundColor: "var(--c-danger-subtle, rgba(190, 60, 60, 0.12))",
+            color: "var(--c-danger, #b93a3a)",
+            fontSize: 11.5,
+          }}
+        >
+          {error}
+        </div>
+      )}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 8,
+          marginTop: 18,
+        }}
+      >
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={busy}
+          style={{
+            padding: "7px 12px",
+            borderRadius: "var(--radius-btn)",
+            border: "1px solid var(--c-border-strong)",
+            backgroundColor: "transparent",
+            color: "var(--c-text)",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: busy ? "not-allowed" : "pointer",
+            opacity: busy ? 0.6 : 1,
+          }}
+        >
+          {t("common.cancel")}
+        </button>
+        <button
+          type="button"
+          onClick={() => onSubmit(password)}
+          disabled={busy || !password}
+          style={{
+            padding: "7px 14px",
+            borderRadius: "var(--radius-btn)",
+            border: "1px solid var(--c-primary)",
+            backgroundColor: "var(--c-primary)",
+            color: "#ffffff",
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: busy || !password ? "not-allowed" : "pointer",
+            opacity: busy || !password ? 0.6 : 1,
+          }}
+        >
+          {busy ? t("dialog.openPassword.opening") : t("dialog.openPassword.open")}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
 export function BatesDialog({
   onClose,
   onApply,
@@ -107,36 +233,37 @@ export function BatesDialog({
   const bates = useEditorStore((s) => s.bates);
   const setBates = useEditorStore((s) => s.setBates);
   const [local, setLocal] = useState(bates);
+  const { t } = useI18n();
 
   return (
-    <Modal title="Bates Numbering Stamp" onClose={onClose}>
-      <label style={lab}>Prefix</label>
+    <Modal title={t("dialog.bates.title")} onClose={onClose}>
+      <label style={lab}>{t("dialog.bates.prefix")}</label>
       <input
         style={inp}
         value={local.prefix}
         onChange={(e) => setLocal({ ...local, prefix: e.target.value })}
       />
-      <label style={lab}>Start Number</label>
+      <label style={lab}>{t("dialog.bates.startNumber")}</label>
       <input
         style={inp}
         type="number"
         value={local.start}
         onChange={(e) => setLocal({ ...local, start: Number(e.target.value) })}
       />
-      <label style={lab}>Digits Padding (e.g. 6 digits: 000001)</label>
+      <label style={lab}>{t("dialog.bates.padding")}</label>
       <input
         style={inp}
         type="number"
         value={local.padding}
         onChange={(e) => setLocal({ ...local, padding: Number(e.target.value) })}
       />
-      <label style={lab}>Suffix</label>
+      <label style={lab}>{t("dialog.bates.suffix")}</label>
       <input
         style={inp}
         value={local.suffix}
         onChange={(e) => setLocal({ ...local, suffix: e.target.value })}
       />
-      <label style={lab}>Stamp Position</label>
+      <label style={lab}>{t("dialog.bates.position")}</label>
       <select
         style={inp}
         value={local.position}
@@ -144,12 +271,12 @@ export function BatesDialog({
           setLocal({ ...local, position: e.target.value as BatesOptions["position"] })
         }
       >
-        <option value="top-left">Top left</option>
-        <option value="top-right">Top right</option>
-        <option value="bottom-left">Bottom left</option>
-        <option value="bottom-right">Bottom right</option>
+        <option value="top-left">{t("dialog.bates.topLeft")}</option>
+        <option value="top-right">{t("dialog.bates.topRight")}</option>
+        <option value="bottom-left">{t("dialog.bates.bottomLeft")}</option>
+        <option value="bottom-right">{t("dialog.bates.bottomRight")}</option>
       </select>
-      <label style={lab}>Font Size</label>
+      <label style={lab}>{t("dialog.bates.fontSize")}</label>
       <input
         style={inp}
         type="number"
@@ -158,7 +285,7 @@ export function BatesDialog({
       />
       <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
         <button type="button" className="btn-secondary-rounded" onClick={onClose}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           type="button"
@@ -169,7 +296,7 @@ export function BatesDialog({
             onApply(opts);
           }}
         >
-          Apply Bates Stamp
+          {t("dialog.bates.apply")}
         </button>
       </div>
     </Modal>
@@ -180,13 +307,16 @@ export function ConvertDialog({
   onClose,
   onExport,
   onCreate,
+  onPdfA,
 }: {
   onClose: () => void;
   onExport: (format: string) => void;
   onCreate: (kind: string) => void;
+  onPdfA?: () => void;
 }) {
+  const { t } = useI18n();
   return (
-    <Modal title="Convert & Export Document" onClose={onClose} wide>
+    <Modal title={t("dialog.convert.title")} onClose={onClose} wide>
       <div
         className="card-raised"
         onClick={() => onExport("pdf")}
@@ -230,7 +360,7 @@ export function ConvertDialog({
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 15, fontWeight: 700, color: "var(--c-text)" }}>
-                Export as PDF (.pdf)
+                {t("dialog.convert.exportPdf")}
               </span>
               <span
                 style={{
@@ -242,11 +372,11 @@ export function ConvertDialog({
                   borderRadius: 999,
                 }}
               >
-                Recommended
+                {t("common.recommended")}
               </span>
             </div>
             <div style={{ fontSize: 12, color: "var(--c-text-muted)", marginTop: 2 }}>
-              Save all changes, form fields, page organizing, and annotations into a clean PDF
+              {t("dialog.convert.exportPdfBody")}
             </div>
           </div>
         </div>
@@ -259,7 +389,7 @@ export function ConvertDialog({
             onExport("pdf");
           }}
         >
-          Download PDF
+          {t("dialog.convert.downloadPdf")}
         </button>
       </div>
 
@@ -275,9 +405,9 @@ export function ConvertDialog({
             letterSpacing: "0.05em",
           }}
         >
-          Export to Other Formats
+          {t("dialog.convert.otherFormats")}
           <span style={{ marginLeft: 8, textTransform: "none", letterSpacing: 0, fontWeight: 500 }}>
-            — converted in your browser
+            {t("dialog.convert.convertedLocally")}
           </span>
         </div>
         {EXPORT_SECTIONS.map((section) => (
@@ -386,16 +516,16 @@ export function ConvertDialog({
             letterSpacing: "0.05em",
           }}
         >
-          Create New Document
+          {t("dialog.convert.createNew")}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
           {[
-            ["images", "From Images"],
-            ["text", "From Plain Text"],
-            ["html", "From HTML"],
-            ["documents", "From any document"],
-            ["docx", "From Word (.docx)"],
-            ["xlsx", "From Excel (.xlsx)"],
+            ["images", t("dialog.convert.fromImages")],
+            ["text", t("dialog.convert.fromPlainText")],
+            ["html", t("dialog.convert.fromHtml")],
+            ["documents", t("dialog.convert.fromAnyDocument")],
+            ["docx", t("dialog.convert.fromWord")],
+            ["xlsx", t("dialog.convert.fromExcel")],
           ].map(([k, label]) => (
             <button
               key={k}
@@ -428,6 +558,53 @@ export function ConvertDialog({
           ))}
         </div>
       </div>
+
+      {onPdfA && (
+        <div style={{ marginTop: 20 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "var(--c-text-muted)",
+              marginBottom: 10,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
+            Archival
+          </div>
+          <button
+            type="button"
+            className="card-raised"
+            onClick={onPdfA}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "12px 14px",
+              borderRadius: "var(--radius-input)",
+              backgroundColor: "var(--c-surface-elevated)",
+              border: "1px solid var(--c-border-subtle)",
+              boxShadow: "var(--shadow-raised-sm)",
+              textAlign: "left",
+              cursor: "pointer",
+            }}
+          >
+            <span style={{ color: "var(--c-text)", display: "flex" }}>
+              <FileCheck size={18} />
+            </span>
+            <span>
+              <span style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--c-text)" }}>
+                PDF/A archival preparation
+              </span>
+              <span style={{ display: "block", marginTop: 2, fontSize: 10.5, color: "var(--c-text-muted)" }}>
+                Add an sRGB output intent, PDF/A-2b XMP metadata, audit fonts, and optionally strip scripts.
+              </span>
+            </span>
+          </button>
+        </div>
+      )}
     </Modal>
   );
 }
@@ -439,9 +616,10 @@ export function CreateTextDialog({
   onClose: () => void;
   onCreate: (text: string) => void;
 }) {
-  const [text, setText] = useState("AnyDoc\n\nStart typing your document text here…");
+  const { t } = useI18n();
+  const [text, setText] = useState(() => t("dialog.createText.template"));
   return (
-    <Modal title="Create PDF from text" onClose={onClose}>
+    <Modal title={t("dialog.createText.title")} onClose={onClose}>
       <textarea
         style={{
           ...inp,
@@ -455,14 +633,14 @@ export function CreateTextDialog({
       />
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 }}>
         <button type="button" className="btn-secondary-rounded" onClick={onClose}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           type="button"
           className="btn-primary-rounded"
           onClick={() => onCreate(text)}
         >
-          Create PDF
+          {t("dialog.createText.create")}
         </button>
       </div>
     </Modal>
@@ -484,6 +662,7 @@ export function RedactionDialog({
   const [y, setY] = useState(700);
   const [width, setWidth] = useState(468);
   const [height, setHeight] = useState(40);
+  const { t } = useI18n();
 
   const applyPreset = (p: "custom" | "header" | "footer" | "ssn") => {
     setPreset(p);
@@ -506,7 +685,7 @@ export function RedactionDialog({
   };
 
   return (
-    <Modal title="Permanent Redaction & Sanitization" onClose={onClose}>
+    <Modal title={t("dialog.redact.title")} onClose={onClose}>
       <div
         style={{
           display: "flex",
@@ -523,11 +702,11 @@ export function RedactionDialog({
       >
         <ShieldAlert size={20} style={{ color: "var(--danger)", flexShrink: 0 }} />
         <span>
-          <strong>Irreversible Redaction:</strong> Selected areas are permanently blacked out in the vector stream. Underlying text strings and coordinates cannot be highlighted, recovered, or extracted.
+          <strong>{t("dialog.redact.warningTitle")}</strong> {t("dialog.redact.warningBody")}
         </span>
       </div>
 
-      <label style={lab}>Target Page</label>
+      <label style={lab}>{t("dialog.redact.targetPage")}</label>
       <input
         type="number"
         min={1}
@@ -537,12 +716,12 @@ export function RedactionDialog({
         style={inp}
       />
 
-      <label style={lab}>Redaction Region Preset</label>
+      <label style={lab}>{t("dialog.redact.preset")}</label>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 4 }}>
         {[
-          ["header", "Header Block"],
-          ["footer", "Footer Strip"],
-          ["ssn", "SSN / ID Box"],
+          ["header", t("dialog.redact.headerBlock")],
+          ["footer", t("dialog.redact.footerStrip")],
+          ["ssn", t("dialog.redact.ssnBox")],
         ].map(([k, label]) => (
           <button
             key={k}
@@ -566,26 +745,26 @@ export function RedactionDialog({
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
         <div>
-          <label style={lab}>X Offset (pts)</label>
+          <label style={lab}>{t("dialog.redact.xOffset")}</label>
           <input type="number" value={x} onChange={(e) => setX(Number(e.target.value))} style={inp} />
         </div>
         <div>
-          <label style={lab}>Y Offset (pts)</label>
+          <label style={lab}>{t("dialog.redact.yOffset")}</label>
           <input type="number" value={y} onChange={(e) => setY(Number(e.target.value))} style={inp} />
         </div>
         <div>
-          <label style={lab}>Width (pts)</label>
+          <label style={lab}>{t("dialog.redact.width")}</label>
           <input type="number" value={width} onChange={(e) => setWidth(Number(e.target.value))} style={inp} />
         </div>
         <div>
-          <label style={lab}>Height (pts)</label>
+          <label style={lab}>{t("dialog.redact.height")}</label>
           <input type="number" value={height} onChange={(e) => setHeight(Number(e.target.value))} style={inp} />
         </div>
       </div>
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
         <button type="button" className="btn-secondary-rounded" onClick={onClose}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           type="button"
@@ -595,7 +774,7 @@ export function RedactionDialog({
             onApply({ pageIndex: page - 1, x, y, width, height });
           }}
         >
-          Apply Permanent Redaction
+          {t("dialog.redact.apply")}
         </button>
       </div>
     </Modal>
@@ -620,9 +799,10 @@ export function DigitalSignatureDialog({
   const [organization, setOrganization] = useState("");
   const [reason, setReason] = useState("");
   const [location, setLocation] = useState("");
+  const { t } = useI18n();
 
   return (
-    <Modal title="Document Integrity Stamp" onClose={onClose}>
+    <Modal title={t("dialog.integrity.title")} onClose={onClose}>
       <div
         style={{
           display: "flex",
@@ -639,52 +819,51 @@ export function DigitalSignatureDialog({
       >
         <FileCheck size={20} style={{ color: "var(--c-primary)", flexShrink: 0 }} />
         <span>
-          Stamp an SHA-256 fingerprint of this document with signer details. No certificate or private
-          key is used, so this is an unsigned integrity stamp — not a digital signature.
+          {t("dialog.integrity.info")}
         </span>
       </div>
 
-      <label style={lab}>Signer Name</label>
+      <label style={lab}>{t("dialog.integrity.signerName")}</label>
       <input
         style={inp}
         value={signerName}
-        placeholder="Full name of the person stamping"
+        placeholder={t("dialog.integrity.signerNamePlaceholder")}
         onChange={(e) => setSignerName(e.target.value)}
       />
 
-      <label style={lab}>Organization / Entity</label>
+      <label style={lab}>{t("dialog.integrity.organization")}</label>
       <input
         style={inp}
         value={organization}
-        placeholder="Organization or entity, if any"
+        placeholder={t("dialog.integrity.organizationPlaceholder")}
         onChange={(e) => setOrganization(e.target.value)}
       />
 
-      <label style={lab}>Reason for Signing</label>
+      <label style={lab}>{t("dialog.integrity.reason")}</label>
       <input
         style={inp}
         value={reason}
-        placeholder="Why this document is being stamped"
+        placeholder={t("dialog.integrity.reasonPlaceholder")}
         onChange={(e) => setReason(e.target.value)}
       />
 
-      <label style={lab}>Location</label>
+      <label style={lab}>{t("dialog.integrity.location")}</label>
       <input
         style={inp}
         value={location}
-        placeholder="City, country"
+        placeholder={t("dialog.integrity.locationPlaceholder")}
         onChange={(e) => setLocation(e.target.value)}
       />
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
         <button type="button" className="btn-secondary-rounded" onClick={onClose}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           type="button"
           className="btn-primary-rounded"
           disabled={!signerName.trim()}
-          title="Enter a signer name"
+          title={t("dialog.integrity.needSigner")}
           style={{ opacity: signerName.trim() ? 1 : 0.5, cursor: signerName.trim() ? "pointer" : "not-allowed" }}
           onClick={() => {
             const dateStr = new Date().toLocaleDateString("en-US", {
@@ -705,7 +884,7 @@ export function DigitalSignatureDialog({
             });
           }}
         >
-          Apply Integrity Stamp
+          {t("dialog.integrity.apply")}
         </button>
       </div>
     </Modal>
@@ -720,8 +899,9 @@ export function MetadataScrubDialog({
   onApply: () => void;
 }) {
   const fileName = useEditorStore((s) => s.fileName);
+  const { t } = useI18n();
   return (
-    <Modal title="Metadata Scrubbing & Privacy Sanitizer" onClose={onClose}>
+    <Modal title={t("dialog.metadata.title")} onClose={onClose}>
       <div
         style={{
           display: "flex",
@@ -738,23 +918,25 @@ export function MetadataScrubDialog({
       >
         <EyeOff size={20} style={{ color: "var(--c-brand)", flexShrink: 0 }} />
         <span>
-          Strip identifying metadata from <strong>{fileName || "this document"}</strong> to protect user privacy and confidentiality before public distribution.
+          {t("dialog.metadata.intro", {
+            name: fileName || t("dialog.metadata.thisDocument"),
+          })}
         </span>
       </div>
 
       <div style={{ fontSize: 12, color: "var(--c-text-muted)", marginBottom: 12 }}>
-        The following hidden data fields will be irreversibly erased:
+        {t("dialog.metadata.willErase")}
       </div>
 
       <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
         {[
-          "Document Title & Subtitle",
-          "Author Name & Organization ID",
-          "Subject & Keywords tags",
-          "Creator Tool & Software Version",
-          "PDF Producer application signature",
-          "Creation Date & Last Modified Timestamp",
-          "Embedded edit history and print presets",
+          t("dialog.metadata.fieldTitle"),
+          t("dialog.metadata.fieldAuthor"),
+          t("dialog.metadata.fieldSubject"),
+          t("dialog.metadata.fieldCreator"),
+          t("dialog.metadata.fieldProducer"),
+          t("dialog.metadata.fieldDates"),
+          t("dialog.metadata.fieldHistory"),
         ].map((item) => (
           <li key={item} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--c-text)" }}>
             <CheckCircle2 size={14} style={{ color: "var(--c-brand)" }} />
@@ -765,14 +947,14 @@ export function MetadataScrubDialog({
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 24 }}>
         <button type="button" className="btn-secondary-rounded" onClick={onClose}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           type="button"
           className="btn-primary-rounded"
           onClick={onApply}
         >
-          Scrub & Clean Document
+          {t("dialog.metadata.apply")}
         </button>
       </div>
     </Modal>
@@ -790,9 +972,10 @@ export function PasswordDialog({
   const [ownerPass, setOwnerPass] = useState("");
   const [allowPrint, setAllowPrint] = useState(true);
   const [allowCopy, setAllowCopy] = useState(false);
+  const { t } = useI18n();
 
   return (
-    <Modal title="Password Protection & Granular Permissions" onClose={onClose}>
+    <Modal title={t("dialog.password.title")} onClose={onClose}>
       <div
         style={{
           display: "flex",
@@ -809,55 +992,54 @@ export function PasswordDialog({
       >
         <Lock size={20} style={{ color: "var(--warning)", flexShrink: 0 }} />
         <span>
-          <strong>Not available in the browser build.</strong> PDF encryption has to be written by a
-          signing engine, which this client-only editor does not bundle. Nothing is encrypted here —
-          use Sanitize to remove hidden data, or run the desktop engine to set a password.
+          <strong>{t("dialog.password.unavailableTitle")}</strong>{" "}
+          {t("dialog.password.unavailableBody")}
         </span>
       </div>
 
-      <label style={lab}>Open Document Password (User Password)</label>
+      <label style={lab}>{t("dialog.password.userPass")}</label>
       <input
         type="password"
-        placeholder="Required to view the document…"
+        placeholder={t("dialog.password.userPassPlaceholder")}
         value={userPass}
         onChange={(e) => setUserPass(e.target.value)}
         style={inp}
       />
 
-      <label style={lab}>Master / Permissions Password (Owner Password)</label>
+      <label style={lab}>{t("dialog.password.ownerPass")}</label>
       <input
         type="password"
-        placeholder="Required to change security permissions…"
+        placeholder={t("dialog.password.ownerPassPlaceholder")}
         value={ownerPass}
         onChange={(e) => setOwnerPass(e.target.value)}
         style={inp}
       />
 
-      <label style={lab}>Granular Security Permissions</label>
+      <label style={lab}>{t("dialog.password.permissions")}</label>
       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 6 }}>
         <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--c-text)", cursor: "pointer" }}>
           <input type="checkbox" checked={allowPrint} onChange={(e) => setAllowPrint(e.target.checked)} />
-          <span>Allow Printing document</span>
+          <span>{t("dialog.password.allowPrint")}</span>
         </label>
         <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--c-text)", cursor: "pointer" }}>
           <input type="checkbox" checked={allowCopy} onChange={(e) => setAllowCopy(e.target.checked)} />
-          <span>Allow Copying text and graphics</span>
+          <span>{t("dialog.password.allowCopy")}</span>
         </label>
       </div>
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 24 }}>
         <button type="button" className="btn-secondary-rounded" onClick={onClose}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           type="button"
           className="btn-primary-rounded"
           disabled
-          title="Requires the desktop engine"
+          title={t("dialog.password.requiresDesktop")}
           onClick={() => onApply({ userPass, ownerPass, allowPrint, allowCopy })}
           style={{ opacity: 0.5, cursor: "not-allowed" }}
         >
-          Encryption unavailable
+          {t("dialog.password.unavailableButton")}
         </button>
       </div>
     </Modal>
@@ -874,9 +1056,10 @@ export function DiffDialog({
   const fileName = useEditorStore((s) => s.fileName);
   const pageCount = useEditorStore((s) => s.pageCount);
   const [secondaryFile, setSecondaryFile] = useState<File | null>(null);
+  const { t } = useI18n();
 
   return (
-    <Modal title="Document Comparison ('Diff' Tool)" onClose={onClose} wide>
+    <Modal title={t("dialog.diff.title")} onClose={onClose} wide>
       <div
         style={{
           display: "flex",
@@ -893,7 +1076,7 @@ export function DiffDialog({
       >
         <GitCompare size={20} style={{ color: "var(--c-primary)", flexShrink: 0 }} />
         <span>
-          Compare two versions of a document side-by-side to detect additions, deletions, page movements, and alterations.
+          {t("dialog.diff.info")}
         </span>
       </div>
 
@@ -907,13 +1090,13 @@ export function DiffDialog({
           }}
         >
           <div style={{ fontSize: 11, fontWeight: 700, color: "var(--c-primary)", textTransform: "uppercase" }}>
-            Base Version (Active)
+            {t("dialog.diff.baseVersion")}
           </div>
           <div style={{ fontSize: 13, fontWeight: 600, color: "var(--c-text)", marginTop: 4 }}>
-            {fileName || "Current Document.pdf"}
+            {fileName || t("dialog.diff.currentDocument")}
           </div>
           <div style={{ fontSize: 11, color: "var(--c-text-muted)", marginTop: 2 }}>
-            {pageCount} page(s)
+            {t("dialog.diff.pageCount", { count: pageCount })}
           </div>
         </div>
 
@@ -932,7 +1115,7 @@ export function DiffDialog({
           }}
         >
           <div style={{ fontSize: 11, fontWeight: 700, color: "var(--c-text-muted)", textTransform: "uppercase" }}>
-            Comparison Version
+            {t("dialog.diff.comparisonVersion")}
           </div>
           {secondaryFile ? (
             <div style={{ marginTop: 6, fontSize: 13, fontWeight: 600, color: "var(--c-text)" }}>
@@ -953,7 +1136,7 @@ export function DiffDialog({
                   } catch (err) {
                     useEditorStore
                       .getState()
-                      .setStatus(err instanceof Error ? err.message : "That file is not a valid PDF");
+                      .setStatus(err instanceof Error ? err.message : t("dialog.diff.invalidPdf"));
                   }
                 }}
               />
@@ -963,7 +1146,7 @@ export function DiffDialog({
                 style={{ marginTop: 8 }}
                 onClick={() => document.getElementById("diff-file-picker")?.click()}
               >
-                Select Comparison PDF
+                {t("dialog.diff.selectPdf")}
               </button>
             </>
           )}
@@ -972,7 +1155,7 @@ export function DiffDialog({
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
         <button type="button" className="btn-secondary-rounded" onClick={onClose}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button
           type="button"
@@ -982,7 +1165,7 @@ export function DiffDialog({
             if (secondaryFile) onCompareFile(secondaryFile);
           }}
         >
-          Run Document Comparison
+          {t("dialog.diff.run")}
         </button>
       </div>
     </Modal>

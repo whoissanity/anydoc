@@ -31,7 +31,7 @@ function loadNaturalSize(dataUrl: string): Promise<{ width: number; height: numb
 export async function insertImageFromFile(file: File): Promise<void> {
   const store = useEditorStore.getState();
   if (!store.pdfBytes || !store.pdfDocProxy) {
-    store.setStatus("Open a PDF before inserting an image");
+    store.setStatus("Open a document before inserting an image");
     return;
   }
 

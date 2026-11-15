@@ -4,10 +4,30 @@ import { useEffect, useRef, useState } from "react";
 import { useEditorStore } from "@/store/editor-store";
 import { pickImageToInsert } from "@/lib/edit/insert-image";
 import {
+  MAX_TEXT_FONT_SIZE,
+  MIN_TEXT_FONT_SIZE,
+  TEXT_FONT_CHOICES,
+} from "@/lib/text/fonts";
+import type { TextEditSession } from "@/lib/types";
+import { useI18n } from "@/components/providers/I18nProvider";
+import { useIsCompact } from "@/lib/use-media-query";
+import { redo, undo } from "@/lib/editor/history";
+import {
+  buildSearchIndex,
+  findMatches,
+  type SearchHit,
+  type SearchIndex,
+  type SearchOptions,
+} from "@/lib/document/search";
+import { LanguageSelector } from "./LanguageSelector";
+import { OcrLanguageSelector } from "./OcrLanguageSelector";
+import {
   BookOpen,
   LayoutGrid,
   Wrench,
   Search,
+  Undo2,
+  Redo2,
   ZoomIn,
   ZoomOut,
   Maximize2,
@@ -26,6 +46,7 @@ import {
   RotateCcw,
   RotateCw,
   Plus,
+  Minus,
   Trash2,
   FileOutput,
   ScanText,
@@ -39,6 +60,7 @@ import {
   StickyNote,
   PenTool,
   ShieldAlert,
+  AlignLeft,
 } from "lucide-react";
 
 interface ActionBtnProps {
@@ -211,6 +233,148 @@ function MarkupColorControls() {
   );
 }
 
+/** Font, size and colour for the text box that is currently being edited. */
+function TextStyleControls() {
+  const textEdit = useEditorStore((s) => s.textEdit);
+  const selectedTextId = useEditorStore((s) => s.selectedTextId);
+  const textObjects = useEditorStore((s) => s.textObjects);
+
+  // Either the box being typed in or the one selected on the page.
+  const active = textEdit ?? textObjects.find((t) => t.id === selectedTextId);
+  if (!active) return null;
+
+  const patch = (p: Partial<TextEditSession>) => {
+    const store = useEditorStore.getState();
+    if (store.textEdit) {
+      store.setTextEdit({ ...store.textEdit, ...p });
+    } else if (store.selectedTextId) {
+      store.updateTextObject(store.selectedTextId, p);
+    }
+  };
+
+  return (
+    <>
+      <div style={{ display: "flex", alignItems: "center", gap: 4, paddingLeft: 4 }}>
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            color: "var(--c-text-subtle)",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+          }}
+        >
+          Text
+        </span>
+        <select
+          aria-label="Text font"
+          title="Text font"
+          value={active.fontFamily}
+          onChange={(e) => patch({ fontFamily: e.target.value })}
+          style={{
+            height: 22,
+            maxWidth: 96,
+            fontSize: 11,
+            background: "transparent",
+            color: "inherit",
+            border: "none",
+            outline: "none",
+            cursor: "pointer",
+          }}
+        >
+          {TEXT_FONT_CHOICES.map((f) => (
+            <option key={f.label} value={f.value} style={{ color: "#111" }}>
+              {f.label}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          aria-label="Decrease text size"
+          title="Decrease text size"
+          onClick={() =>
+            patch({ fontSize: Math.max(MIN_TEXT_FONT_SIZE, active.fontSize - 1) })
+          }
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 22,
+            height: 22,
+            borderRadius: 6,
+            color: "var(--c-icon-idle)",
+          }}
+        >
+          <Minus size={12} />
+        </button>
+        <span className="text-style-value">{Math.round(active.fontSize)}</span>
+        <button
+          type="button"
+          aria-label="Increase text size"
+          title="Increase text size"
+          onClick={() =>
+            patch({ fontSize: Math.min(MAX_TEXT_FONT_SIZE, active.fontSize + 1) })
+          }
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 22,
+            height: 22,
+            borderRadius: 6,
+            color: "var(--c-icon-idle)",
+          }}
+        >
+          <Plus size={12} />
+        </button>
+        <button
+          type="button"
+          aria-label="Toggle bold"
+          title="Bold"
+          aria-pressed={!!active.bold}
+          onClick={() => patch({ bold: !active.bold })}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 22,
+            height: 22,
+            borderRadius: 6,
+            fontWeight: 800,
+            color: active.bold ? "var(--c-text)" : "var(--c-icon-idle)",
+            background: active.bold ? "var(--c-hover)" : "transparent",
+          }}
+        >
+          B
+        </button>
+        <input
+          type="color"
+          aria-label="Text colour"
+          title="Text colour"
+          value={active.color}
+          onChange={(e) => patch({ color: e.target.value })}
+          style={{
+            width: 22,
+            height: 20,
+            padding: 0,
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+          }}
+        />
+      </div>
+      <div
+        style={{
+          width: 1,
+          height: 14,
+          backgroundColor: "var(--c-border-subtle)",
+          margin: "0 4px",
+        }}
+      />
+    </>
+  );
+}
+
 export function WorkbenchBar({
   onSave,
   onDownload,
@@ -224,6 +388,8 @@ export function WorkbenchBar({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isCrowded, setIsCrowded] = useState(false);
+  const { t } = useI18n();
+  const isCompact = useIsCompact();
 
   const theme = useEditorStore((s) => s.theme);
   const toggleTheme = useEditorStore((s) => s.toggleTheme);
@@ -240,11 +406,29 @@ export function WorkbenchBar({
   const toggleTool = useEditorStore((s) => s.toggleTool);
   const redactions = useEditorStore((s) => s.redactions);
   const hasDoc = !!useEditorStore((s) => s.pdfBytes);
+  const history = useEditorStore((s) => s.history);
+  const historyIndex = useEditorStore((s) => s.historyIndex);
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex >= 0 && historyIndex < history.length - 1;
+  const historyBusy = useEditorStore((s) => s.activeDialog === "tool");
+  const undoLabel = canUndo ? history[historyIndex - 1]?.label : null;
+  const redoLabel = canRedo ? history[historyIndex + 1]?.label : null;
   const searchQuery = useEditorStore((s) => s.searchQuery);
   const setSearchQuery = useEditorStore((s) => s.setSearchQuery);
+  const pdfDocProxy = useEditorStore((s) => s.pdfDocProxy);
   const pageCount = useEditorStore((s) => s.pageCount);
   const setCurrentPage = useEditorStore((s) => s.setCurrentPage);
   const setActiveDialog = useEditorStore((s) => s.setActiveDialog);
+  const [searchOptions, setSearchOptions] = useState<SearchOptions>({
+    caseSensitive: false,
+    wholeWord: false,
+    diacritics: true,
+  });
+  const [searchHits, setSearchHits] = useState<SearchHit[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const indexRef = useRef<{ doc: unknown; index: SearchIndex } | null>(null);
 
   // Responsive reflow: ResizeObserver detects crowding (< 740px) (R4)
   useEffect(() => {
@@ -278,13 +462,68 @@ export function WorkbenchBar({
       }
     }
 
-    useEditorStore.getState().setStatus(`Searching for: "${query}"`);
+    setShowSearch(query.length >= 2);
+    if (query.length >= 2) setSearching(true);
+  };
+
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (query.length < 2 || !pdfDocProxy) {
+      setSearchHits([]);
+      setShowSearch(false);
+      setSearching(false);
+      setSearchError(null);
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+    setSearching(true);
+    setSearchError(null);
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          let cached = indexRef.current;
+          if (!cached || cached.doc !== pdfDocProxy) {
+            const index = await buildSearchIndex(pdfDocProxy as never, controller.signal);
+            cached = { doc: pdfDocProxy, index };
+            indexRef.current = cached;
+          }
+          if (cancelled) return;
+          setSearchHits(findMatches(cached.index, query, searchOptions));
+          setShowSearch(true);
+        } catch (error) {
+          if (!cancelled) setSearchError(error instanceof Error ? error.message : "Search failed");
+        } finally {
+          if (!cancelled) setSearching(false);
+        }
+      })();
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [searchQuery, searchOptions, pdfDocProxy]);
+
+  const jumpToHit = (hit: SearchHit) => {
+    setCurrentPage(hit.pageIndex + 1);
+    setShowSearch(false);
+    useEditorStore.getState().setStatus(`Found on page ${hit.pageIndex + 1}`);
+    requestAnimationFrame(() => {
+      document
+        .querySelector(`[data-page="${hit.pageIndex + 1}"]`)
+        ?.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
   };
 
   return (
     <header
       ref={containerRef}
+      className="workbench-bar"
       style={{
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         backgroundColor: "var(--c-surface)",
@@ -297,16 +536,26 @@ export function WorkbenchBar({
       }}
     >
       <div
+        className="workbench-bar-row"
         style={{
           height: "var(--bar-h)",
           display: "flex",
           alignItems: "center",
           padding: "0 10px",
           gap: 8,
-          justifyContent: "space-between",
+          justifyContent: isCompact ? "flex-start" : "space-between",
+          overflowX: isCompact ? "auto" : "visible",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+        <div
+          className="workbench-bar-views"
+          style={{
+            display: isCompact ? "none" : "flex",
+            alignItems: "center",
+            gap: 4,
+            flexShrink: 0,
+          }}
+        >
           <button
             type="button"
             onClick={() => setCurrentView("viewer")}
@@ -333,7 +582,7 @@ export function WorkbenchBar({
             }}
           >
             <BookOpen size={15} strokeWidth={1.85} />
-            <span>Viewer</span>
+            <span>{t("toolbar.viewer")}</span>
           </button>
 
           <button
@@ -362,7 +611,7 @@ export function WorkbenchBar({
             }}
           >
             <LayoutGrid size={15} strokeWidth={1.85} />
-            <span>Organize</span>
+            <span>{t("toolbar.organize")}</span>
           </button>
 
           <button
@@ -391,7 +640,7 @@ export function WorkbenchBar({
             }}
           >
             <Wrench size={15} strokeWidth={1.85} />
-            <span>Tools</span>
+            <span>{t("toolbar.tools")}</span>
           </button>
         </div>
 
@@ -418,7 +667,7 @@ export function WorkbenchBar({
             />
             <input
               type="text"
-              placeholder="Search document text or #page..."
+              placeholder={t("nav.search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -451,9 +700,13 @@ export function WorkbenchBar({
           </form>
         )}
 
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-          {hasDoc && fileName && (
+        <div
+          className="workbench-bar-actions"
+          style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}
+        >
+          {hasDoc && fileName && !isCompact && (
             <div
+              className="workbench-bar-file"
               title={fileName}
               style={{
                 maxWidth: 140,
@@ -484,7 +737,7 @@ export function WorkbenchBar({
               }}
             >
               <ActionBtn
-                title="Zoom out"
+                title={t("nav.zoomOut")}
                 icon={<ZoomOut size={15} strokeWidth={1.85} />}
                 onClick={() => setZoom(Math.max(0.25, Number((zoom - 0.1).toFixed(2))))}
               />
@@ -500,12 +753,12 @@ export function WorkbenchBar({
                 {Math.round(zoom * 100)}%
               </span>
               <ActionBtn
-                title="Zoom in"
+                title={t("nav.zoomIn")}
                 icon={<ZoomIn size={15} strokeWidth={1.85} />}
                 onClick={() => setZoom(Math.min(4, Number((zoom + 0.1).toFixed(2))))}
               />
               <ActionBtn
-                title="Fit to width"
+                title={t("nav.fitWidth")}
                 icon={<Maximize2 size={15} strokeWidth={1.85} />}
                 onClick={() => setZoomMode("fit-width")}
               />
@@ -522,9 +775,23 @@ export function WorkbenchBar({
                 marginLeft: 2,
               }}
             >
+              <ActionBtn
+                title={undoLabel ? `Undo: ${undoLabel}` : t("nav.nothingToUndo")}
+                icon={<Undo2 size={15} strokeWidth={1.85} />}
+                label={t("nav.undo")}
+                disabled={!canUndo || historyBusy}
+                onClick={() => void undo()}
+              />
+              <ActionBtn
+                title={redoLabel ? `Redo: ${redoLabel}` : t("nav.nothingToRedo")}
+                icon={<Redo2 size={15} strokeWidth={1.85} />}
+                label={t("nav.redo")}
+                disabled={!canRedo || historyBusy}
+                onClick={() => void redo()}
+              />
               <button
                 type="button"
-                title={dirty ? "Save changes (modified)" : "Save"}
+                title={dirty ? t("nav.saveChanges") : t("nav.save")}
                 onClick={() => onSave?.()}
                 style={{
                   display: "inline-flex",
@@ -564,7 +831,7 @@ export function WorkbenchBar({
 
               <button
                 type="button"
-                title="Export / Download"
+                title={t("nav.export")}
                 onClick={() => {
                   if (onDownload) {
                     onDownload();
@@ -598,7 +865,7 @@ export function WorkbenchBar({
               </button>
 
               <ActionBtn
-                title="Close document"
+                title={t("nav.close")}
                 danger
                 icon={<X size={15} strokeWidth={1.85} />}
                 onClick={() => {
@@ -616,9 +883,11 @@ export function WorkbenchBar({
             style={{
               display: "flex",
               alignItems: "center",
+              gap: 6,
               marginLeft: 2,
             }}
           >
+            <LanguageSelector />
             <ActionBtn
               title={theme === "dark" ? "Switch to warm sand theme" : "Switch to Apple dark mode"}
               icon={
@@ -665,7 +934,7 @@ export function WorkbenchBar({
             />
             <input
               type="text"
-              placeholder="Search document text or #page..."
+              placeholder={t("nav.search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -701,6 +970,7 @@ export function WorkbenchBar({
       {/* Contextual tool strip for the active workspace. */}
       {hasDoc && (
         <div
+          className="workbench-toolstrip"
           style={{
             height: 32,
             backgroundColor: "var(--c-bg-varied-1)",
@@ -812,6 +1082,8 @@ export function WorkbenchBar({
                 />
               </div>
 
+              <TextStyleControls />
+
               <MarkupColorControls />
 
               <ActionBtn
@@ -820,6 +1092,8 @@ export function WorkbenchBar({
                 label="OCR page"
                 onClick={() => onPageAction?.("ocr-page")}
               />
+
+              <OcrLanguageSelector compact />
 
               <div
                 style={{
@@ -892,6 +1166,12 @@ export function WorkbenchBar({
                   icon={<Presentation size={15} strokeWidth={1.85} />}
                   onClick={() => setViewMode("presentation")}
                 />
+                <ActionBtn
+                  title="Text reflow"
+                  active={viewMode === "reflow"}
+                  icon={<AlignLeft size={15} strokeWidth={1.85} />}
+                  onClick={() => setViewMode(viewMode === "reflow" ? "continuous" : "reflow")}
+                />
               </div>
 
               <div
@@ -906,7 +1186,7 @@ export function WorkbenchBar({
               <ActionBtn
                 title="Browse every document tool"
                 icon={<Wrench size={15} strokeWidth={1.85} />}
-                label="All tools"
+                label={t("toolbar.allTools")}
                 onClick={() => setCurrentView("fileEditor")}
               />
             </>
@@ -968,6 +1248,7 @@ export function WorkbenchBar({
                 label="Run OCR"
                 onClick={() => onPageAction?.("ocr")}
               />
+              <OcrLanguageSelector />
               <ActionBtn
                 title="Bates Numbering"
                 icon={<Stamp size={15} strokeWidth={1.85} />}
@@ -984,6 +1265,130 @@ export function WorkbenchBar({
           )}
         </div>
       )}
+      {showSearch && searchQuery.trim().length >= 2 && (
+        <div
+          className="search-popover"
+          style={{
+            position: "absolute",
+            top: "100%",
+            right: 16,
+            width: 360,
+            maxHeight: 360,
+            overflow: "auto",
+            padding: 10,
+            borderRadius: "var(--radius-input)",
+            border: "1px solid var(--border)",
+            backgroundColor: "var(--c-surface)",
+            boxShadow: "var(--shadow-lg, 0 12px 32px rgba(0,0,0,0.22))",
+            zIndex: 60,
+            userSelect: "text",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+            <SearchOption
+              active={searchOptions.caseSensitive}
+              label="Aa"
+              title="Match case"
+              onClick={() => setSearchOptions((prev) => ({ ...prev, caseSensitive: !prev.caseSensitive }))}
+            />
+            <SearchOption
+              active={searchOptions.wholeWord}
+              label="W"
+              title="Whole word"
+              onClick={() => setSearchOptions((prev) => ({ ...prev, wholeWord: !prev.wholeWord }))}
+            />
+            <SearchOption
+              active={searchOptions.diacritics}
+              label="é"
+              title="Match accents"
+              onClick={() => setSearchOptions((prev) => ({ ...prev, diacritics: !prev.diacritics }))}
+            />
+            <span style={{ marginLeft: "auto", fontSize: 11, color: "var(--c-text-muted)" }}>
+              {searching ? "Searching…" : `${searchHits.length} result(s)`}
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowSearch(false)}
+              title="Close search results"
+              style={{ border: 0, background: "transparent", color: "var(--c-text-muted)", cursor: "pointer" }}
+            >
+              <X size={14} />
+            </button>
+          </div>
+
+          {searchError && (
+            <div style={{ fontSize: 11.5, color: "var(--danger)", padding: "4px 2px" }}>{searchError}</div>
+          )}
+          {!searching && !searchError && searchHits.length === 0 && (
+            <div style={{ fontSize: 11.5, color: "var(--c-text-muted)", padding: "4px 2px" }}>
+              No matches
+            </div>
+          )}
+
+          {searchHits.slice(0, 30).map((hit, index) => (
+            <button
+              key={`${hit.pageIndex}-${hit.matchIndex}-${index}`}
+              type="button"
+              onClick={() => jumpToHit(hit)}
+              style={{
+                display: "block",
+                width: "100%",
+                textAlign: "left",
+                border: 0,
+                borderTop: "1px solid var(--border-subtle)",
+                background: "transparent",
+                padding: "7px 4px",
+                cursor: "pointer",
+                color: "var(--c-text)",
+                fontSize: 11.5,
+                lineHeight: 1.45,
+              }}
+            >
+              <span style={{ color: "var(--c-text-subtle)", fontFamily: "var(--font-mono)" }}>
+                p{hit.pageIndex + 1}
+              </span>{" "}
+              {hit.before}
+              <mark style={{ background: "rgba(255, 214, 0, 0.35)", color: "inherit" }}>{hit.match}</mark>
+              {hit.after}
+            </button>
+          ))}
+        </div>
+      )}
     </header>
+  );
+}
+
+function SearchOption({
+  active,
+  label,
+  title,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  title: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      aria-pressed={active}
+      onClick={onClick}
+      style={{
+        minWidth: 26,
+        height: 24,
+        padding: "0 6px",
+        borderRadius: 6,
+        border: `1px solid ${active ? "var(--c-brand)" : "var(--border-subtle)"}`,
+        backgroundColor: active ? "var(--c-brand-subtle)" : "transparent",
+        color: active ? "var(--c-brand)" : "var(--c-text-muted)",
+        fontSize: 11.5,
+        fontWeight: 600,
+        cursor: "pointer",
+      }}
+    >
+      {label}
+    </button>
   );
 }

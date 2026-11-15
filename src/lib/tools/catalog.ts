@@ -25,6 +25,7 @@ import {
   Paperclip,
   RotateCw,
   Rows3,
+  ScanText,
   Scissors,
   ShieldCheck,
   SlidersHorizontal,
@@ -78,6 +79,7 @@ import {
   suggestFileName,
 } from "@/lib/inspect/extract";
 import { comparePdfs } from "@/lib/inspect/compare";
+import { analyzeDocumentHealth, healthHeadline } from "@/lib/inspect/health";
 import { formatBookmarkLines, parseBookmarkLines, writeBookmarks } from "@/lib/inspect/bookmarks";
 import {
   splitByBookmarks,
@@ -120,7 +122,8 @@ export interface ToolContext {
   pageCount: number;
   currentPage: number;
   outline: OutlineItem[];
-  onProgress: (msg: string) => void;
+  onProgress: (msg: string, percent?: number) => void;
+  signal?: AbortSignal;
 }
 
 export interface ToolReport {
@@ -153,11 +156,15 @@ export interface ToolDef {
   prepare?: (ctx: ToolContext) => Promise<ParamValues>;
   run?: (ctx: ToolContext, values: ParamValues) => Promise<ToolOutcome>;
   /** Tools that already have a bespoke dialog in the editor. */
-  opensDialog?: "redact" | "bates";
+  opensDialog?: "redact" | "bates" | "batch" | "pdfa" | "ocr";
   /** Activates a canvas tool in the viewer instead of opening a dialog. */
   activateTool?: "redact-box";
   /** True when running the tool produces a download rather than an edited document. */
   downloads?: boolean;
+  /** Pure pdf-lib tools that can run in the background worker without canvas/PDF.js. */
+  workerSafe?: boolean;
+  /** Tools that can be chained in a batch recipe without a custom dialog or extra file. */
+  batchSafe?: boolean;
   /** Feature that needs a desktop/server engine rather than this browser build. */
   unavailable?: string;
 }
@@ -221,6 +228,7 @@ export const TOOLS: ToolDef[] = [
     category: "Marks & Branding",
     icon: Hash,
     keywords: ["number", "pagination", "footer", "header", "bates"],
+    batchSafe: true,
     params: [
       {
         key: "format",
@@ -358,6 +366,7 @@ export const TOOLS: ToolDef[] = [
     category: "Marks & Branding",
     icon: Stamp,
     keywords: ["stamp", "approved", "draft", "review", "status"],
+    batchSafe: true,
     params: [
       { key: "text", label: "Stamp text", type: "text", defaultValue: "APPROVED" },
       { key: "fontSize", label: "Font size", type: "range", defaultValue: 36, min: 10, max: 96, group: "Style" },
@@ -418,6 +427,7 @@ export const TOOLS: ToolDef[] = [
     category: "Organize",
     icon: Crop,
     keywords: ["crop", "trim", "margins", "whitespace", "scan"],
+    batchSafe: true,
     params: [
       {
         key: "mode",
@@ -473,6 +483,7 @@ export const TOOLS: ToolDef[] = [
     category: "Organize",
     icon: SlidersHorizontal,
     keywords: ["resize", "scale", "paper", "a4", "letter", "fit"],
+    batchSafe: true,
     params: [
       {
         key: "preset",
@@ -534,6 +545,7 @@ export const TOOLS: ToolDef[] = [
     category: "Organize",
     icon: LayoutGrid,
     keywords: ["n-up", "pages per sheet", "handout", "print", "booklet", "2-up"],
+    batchSafe: true,
     params: [
       {
         key: "layout",
@@ -578,6 +590,7 @@ export const TOOLS: ToolDef[] = [
     category: "Organize",
     icon: BookOpen,
     keywords: ["booklet", "imposition", "saddle", "fold", "print"],
+    batchSafe: true,
     params: [
       { key: "gutter", label: "Centre gutter", type: "range", defaultValue: 0, min: 0, max: 60, group: "Layout" },
       { key: "margin", label: "Sheet margin", type: "range", defaultValue: 12, min: 0, max: 60, group: "Layout" },
@@ -597,6 +610,7 @@ export const TOOLS: ToolDef[] = [
     category: "Organize",
     icon: Rows3,
     keywords: ["single page", "join", "stitch", "long", "continuous"],
+    batchSafe: true,
     params: [
       { key: "gap", label: "Gap between pages", type: "range", defaultValue: 0, min: 0, max: 60, group: "Layout" },
       { key: "maxWidth", label: "Minimum width", type: "number", defaultValue: 612, min: 100, group: "Layout" },
@@ -616,6 +630,7 @@ export const TOOLS: ToolDef[] = [
     category: "Organize",
     icon: ListTree,
     keywords: ["bookmarks", "outline", "toc", "chapters", "navigation"],
+    batchSafe: true,
     params: [
       {
         key: "bookmarks",
@@ -647,6 +662,7 @@ export const TOOLS: ToolDef[] = [
     category: "Organize",
     icon: RotateCw,
     keywords: ["rotate", "landscape", "portrait", "turn"],
+    batchSafe: true,
     params: [
       {
         key: "angle",
@@ -672,6 +688,7 @@ export const TOOLS: ToolDef[] = [
     category: "Organize",
     icon: Sparkles,
     keywords: ["auto rotate", "sideways", "upright", "deskew", "orientation"],
+    batchSafe: true,
     run: async (ctx) => {
       ctx.onProgress("Detecting text orientation…");
       const guesses = await suggestRotations(ctx.bytes);
@@ -702,6 +719,7 @@ export const TOOLS: ToolDef[] = [
     category: "Optimise",
     icon: Minimize2,
     keywords: ["compress", "shrink", "size", "optimise", "email", "reduce"],
+    batchSafe: true,
     params: [
       {
         key: "mode",
@@ -790,6 +808,7 @@ export const TOOLS: ToolDef[] = [
     category: "Optimise",
     icon: Layers,
     keywords: ["flatten", "lock", "finalize", "form", "annotations"],
+    batchSafe: true,
     params: [
       { key: "forms", label: "Flatten form fields", type: "toggle", defaultValue: true },
       { key: "annotations", label: "Remove annotations", type: "toggle", defaultValue: true },
@@ -813,6 +832,7 @@ export const TOOLS: ToolDef[] = [
     category: "Optimise",
     icon: FileMinus,
     keywords: ["blank", "empty", "remove", "scan", "cleanup"],
+    batchSafe: true,
     params: [
       { key: "threshold", label: "Blank threshold", type: "range", defaultValue: 0.002, min: 0.0002, max: 0.01, step: 0.0002, hint: "Higher values remove pages with faint specks." },
       { key: "keepLast", label: "Never remove the last page", type: "toggle", defaultValue: true },
@@ -843,6 +863,8 @@ export const TOOLS: ToolDef[] = [
     category: "Inspect",
     icon: FileText,
     keywords: ["metadata", "title", "author", "properties", "subject", "keywords"],
+    workerSafe: true,
+    batchSafe: true,
     params: [
       { key: "title", label: "Title", type: "text", defaultValue: "", group: "Details" },
       { key: "author", label: "Author", type: "text", defaultValue: "", group: "Details" },
@@ -875,6 +897,25 @@ export const TOOLS: ToolDef[] = [
     }),
   },
   {
+    id: "batch",
+    name: "Batch processing",
+    description: "Apply a recipe pipeline to many PDFs at once and download a ZIP. Files never leave this device.",
+    category: "Organize",
+    icon: Layers,
+    keywords: ["batch", "pipeline", "recipe", "bulk", "automation", "many files"],
+    opensDialog: "batch",
+  },
+  {
+    id: "ocr",
+    name: "OCR (searchable text)",
+    description:
+      "Read scanned pages on-device with PaddleOCR, fall back to Tesseract, and add an invisible searchable text layer.",
+    category: "Inspect",
+    icon: ScanText,
+    keywords: ["ocr", "scan", "search", "text", "paddle", "tesseract", "image pdf"],
+    opensDialog: "ocr",
+  },
+  {
     id: "document-report",
     name: "Document report",
     description: "One-page health check: sizes, metadata, scripts, forms, attachments and encryption.",
@@ -889,6 +930,44 @@ export const TOOLS: ToolDef[] = [
           title: "Document report",
           stats: report.stats,
           lines: report.lines,
+        },
+      };
+    },
+  },
+  {
+    id: "health-score",
+    name: "Document health score",
+    description: "Grade structure, metadata, security and accessibility, with fixes ranked by impact.",
+    category: "Inspect",
+    icon: ShieldCheck,
+    keywords: ["health", "score", "audit", "quality", "accessibility", "grade"],
+    run: async (ctx) => {
+      const health = await analyzeDocumentHealth(ctx.bytes);
+      const tone = (score: number): "good" | "warn" | "bad" =>
+        score >= 80 ? "good" : score >= 60 ? "warn" : "bad";
+      return {
+        message: healthHeadline(health),
+        report: {
+          title: "Document health",
+          stats: [
+            {
+              label: "Score",
+              value: `${health.score}/100`,
+              tone: tone(health.score),
+            },
+            { label: "Grade", value: health.grade, tone: tone(health.score) },
+            ...health.categories.map((category) => ({
+              label: category.label,
+              value: `${category.score}`,
+              tone: tone(category.score),
+            })),
+          ],
+          lines: health.issues.map(
+            (item) => `${item.severity.toUpperCase()} · ${item.title} — ${item.fix}`
+          ),
+          note: health.issues.length
+            ? "Fix critical items first; the score is a local heuristic, not a certification."
+            : "No structural, metadata, security or accessibility problems were detected.",
         },
       };
     },
@@ -920,6 +999,7 @@ export const TOOLS: ToolDef[] = [
     category: "Optimise",
     icon: Wrench,
     keywords: ["repair", "fix", "corrupt", "broken", "recover"],
+    batchSafe: true,
     run: async (ctx) => {
       const result = await repairPdf(ctx.bytes);
       return {
@@ -939,6 +1019,7 @@ export const TOOLS: ToolDef[] = [
     category: "Security",
     icon: EyeOff,
     keywords: ["redact", "search", "gdpr", "sensitive", "ssn", "scrub"],
+    batchSafe: true,
     params: [
       { key: "terms", label: "Terms to redact", type: "textarea", defaultValue: "", group: "Find", hint: "Comma or newline separated. Every match is burned out." },
       { key: "caseSensitive", label: "Case sensitive", type: "toggle", defaultValue: false, group: "Find" },
@@ -1012,6 +1093,8 @@ export const TOOLS: ToolDef[] = [
     category: "Security",
     icon: ShieldCheck,
     keywords: ["sanitize", "clean", "javascript", "metadata", "privacy", "strip"],
+    workerSafe: true,
+    batchSafe: true,
     params: [
       { key: "metadata", label: "Erase metadata", type: "toggle", defaultValue: true, group: "Remove" },
       { key: "javascript", label: "JavaScript & auto actions", type: "toggle", defaultValue: true, group: "Remove" },
@@ -1057,6 +1140,7 @@ export const TOOLS: ToolDef[] = [
     category: "Security",
     icon: Eraser,
     keywords: ["annotations", "comments", "markup", "clean"],
+    batchSafe: true,
     params: [
       { key: "flatten", label: "Keep form fields visible (flatten first)", type: "toggle", defaultValue: true },
     ],
@@ -1075,6 +1159,7 @@ export const TOOLS: ToolDef[] = [
     category: "Security",
     icon: LockOpen,
     keywords: ["unlock", "form", "readonly", "fill", "editable"],
+    batchSafe: true,
     run: async (ctx) => {
       const result = await unlockForms(ctx.bytes);
       return {
@@ -1090,6 +1175,7 @@ export const TOOLS: ToolDef[] = [
     category: "Optimise",
     icon: Palette,
     keywords: ["color", "grayscale", "invert", "contrast", "scan", "bw"],
+    batchSafe: true,
     params: [
       {
         key: "mode",
@@ -1322,12 +1408,13 @@ export const TOOLS: ToolDef[] = [
   },
   {
     id: "pdfa",
-    name: "Convert to PDF/A",
-    description: "Archive-grade PDF/A with embedded fonts and validated colour profiles.",
+    name: "Prepare for PDF/A",
+    description:
+      "Add PDF/A-2b structure, an sRGB output intent and XMP metadata on this device, then run a local structural self-check.",
     category: "Optimise",
     icon: ShieldCheck,
-    keywords: ["pdfa", "archive", "compliance", "iso"],
-    unavailable: "Requires a PDF/A verifier such as veraPDF on a server.",
+    keywords: ["pdfa", "archive", "compliance", "iso", "long-term"],
+    opensDialog: "pdfa",
   },
 ];
 

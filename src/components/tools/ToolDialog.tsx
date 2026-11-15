@@ -1,11 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { saveAs } from "file-saver";
 import { AlertTriangle, CheckCircle2, Loader2, Upload } from "lucide-react";
 import { Modal } from "@/components/editor/Dialogs";
+import { useI18n } from "@/components/providers/I18nProvider";
 import { useEditorStore } from "@/store/editor-store";
 import { reloadFromBytes } from "@/lib/document/document-service";
+import { bakePendingEdits } from "@/lib/edit/bake";
+import { clearOverlays, restoreOverlays } from "@/lib/editor/history";
+import { runInWorker, workerSupported } from "@/lib/tools/worker-runner";
 import {
   defaultValues,
   getTool,
@@ -14,7 +18,61 @@ import {
   type ToolParam,
 } from "@/lib/tools/catalog";
 
+const TOOL_TIMEOUT_MS = 120_000;
+
+/** Tools that change page geometry or rasterise pages: overlays must be baked first. */
+const BAKING_TOOLS = new Set([
+  "crop",
+  "resize",
+  "nup",
+  "booklet",
+  "long-page",
+  "rotate-all",
+  "auto-rotate",
+  "remove-blank",
+  "compress",
+  "color-adjust",
+  "flatten",
+  "redact-search",
+]);
+
+
+
+function withTimeout<T>(promise: Promise<T>, controller: AbortController): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const signal = controller.signal;
+    const timer = setTimeout(() => {
+      cleanup();
+      controller.abort();
+      reject(new Error(`The operation timed out after ${TOOL_TIMEOUT_MS / 1000}s`));
+    }, TOOL_TIMEOUT_MS);
+
+    const onAbort = () => {
+      cleanup();
+      reject(new DOMException("Cancelled", "AbortError"));
+    };
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", onAbort);
+    };
+
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (value) => {
+        cleanup();
+        resolve(value);
+      },
+      (error) => {
+        cleanup();
+        reject(error);
+      }
+    );
+  });
+}
+
 export function ToolDialog() {
+  const { t } = useI18n();
   const activeDialog = useEditorStore((s) => s.activeDialog);
   const activeToolId = useEditorStore((s) => s.activeToolId);
   const setActiveDialog = useEditorStore((s) => s.setActiveDialog);
@@ -24,8 +82,10 @@ export function ToolDialog() {
   const [values, setValues] = useState<ParamValues>({});
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState("");
+  const [progressPct, setProgressPct] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<ToolOutcome | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const close = useCallback(() => {
     setActiveDialog("none");
@@ -34,6 +94,14 @@ export function ToolDialog() {
     setError(null);
     setBusy(false);
   }, [setActiveDialog, setActiveTool]);
+
+  const cancel = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    close();
+  }, [close]);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   // Reset and seed the form whenever a different tool is opened.
   useEffect(() => {
@@ -78,24 +146,69 @@ export function ToolDialog() {
   const run = async () => {
     const state = useEditorStore.getState();
     if (!state.pdfBytes || !tool.run) return;
+    const initialBytes = state.pdfBytes;
+    state.pushHistory(`Before ${tool.name}`);
+    const snapshot = state;
     setBusy(true);
     setError(null);
-    setProgress("Starting…");
+    setProgress(t("tool.starting"));
+    setProgressPct(null);
+    const abort = new AbortController();
+    abortRef.current = abort;
     try {
-      const result = await tool.run(
-        {
-          bytes: state.pdfBytes,
-          fileName: state.fileName || "document.pdf",
-          pageCount: state.pageCount,
-          currentPage: state.currentPage,
-          outline: state.outline,
-          onProgress: (msg) => setProgress(msg),
+      let runBytes = initialBytes;
+      let bakedOverlays = false;
+      if (BAKING_TOOLS.has(tool.id)) {
+        setProgress(t("tool.bakingOverlays"));
+        setProgressPct(5);
+        runBytes = await bakePendingEdits(initialBytes, snapshot, { burnRedactions: true });
+        bakedOverlays = true;
+      }
+
+      const ctx = {
+        bytes: runBytes,
+        fileName: snapshot.fileName || "document.pdf",
+        pageCount: snapshot.pageCount,
+        currentPage: snapshot.currentPage,
+        outline: snapshot.outline,
+        onProgress: (msg: string, percent?: number) => {
+          setProgress(msg);
+          if (typeof percent === "number") setProgressPct(percent);
         },
-        values
+        signal: abort.signal,
+      };
+      const result = await withTimeout(
+        tool.workerSafe && workerSupported()
+          ? runInWorker(tool.id, ctx.bytes, values, abort.signal, ctx.onProgress)
+          : tool.run(ctx, values),
+        abort
       );
 
       if (result.bytes) {
-        await reloadFromBytes(result.bytes, result.rename || state.fileName || "document.pdf");
+        await reloadFromBytes(result.bytes, result.rename || snapshot.fileName || "document.pdf");
+        if (bakedOverlays || tool.id === "flatten") {
+          clearOverlays();
+        } else if (tool.id === "remove-annotations") {
+          restoreOverlays({
+            ...snapshot,
+            annotations: [],
+            stickyNotes: [],
+            comments: [],
+          });
+        } else if (tool.id === "sanitize") {
+          const next = { ...snapshot };
+          if (values.annotations === true) {
+            next.annotations = [];
+            next.stickyNotes = [];
+            next.comments = [];
+          }
+          if (values.forms !== "keep" && values.forms !== false) {
+            next.formFields = [];
+          }
+          restoreOverlays(next);
+        } else {
+          restoreOverlays(snapshot);
+        }
       } else if (result.rename) {
         useEditorStore.getState().setFileName(result.rename);
       }
@@ -111,10 +224,16 @@ export function ToolDialog() {
         close();
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "That tool could not finish");
+      if (e instanceof DOMException && e.name === "AbortError") {
+        close();
+        return;
+      }
+      setError(e instanceof Error ? e.message : t("tool.failed"));
     } finally {
+      abortRef.current = null;
       setBusy(false);
       setProgress("");
+      setProgressPct(null);
     }
   };
 
@@ -188,13 +307,20 @@ export function ToolDialog() {
               }}
             >
               <Loader2 size={14} className="spin" />
-              <span>{progress}</span>
+              <span>
+                {progress}
+                {progressPct != null ? ` · ${Math.round(progressPct)}%` : ""}
+              </span>
             </div>
           )}
 
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 24 }}>
-            <button type="button" className="btn-secondary-rounded" onClick={close} disabled={busy}>
-              Cancel
+            <button
+              type="button"
+              className="btn-secondary-rounded"
+              onClick={busy ? cancel : close}
+            >
+              {t("common.cancel")}
             </button>
             <button
               type="button"
@@ -202,7 +328,11 @@ export function ToolDialog() {
               onClick={() => void run()}
               disabled={busy || !hasDocument || !!tool.unavailable || !tool.run}
             >
-              {busy ? "Working…" : tool.downloads ? "Run & download" : "Apply"}
+              {busy
+                ? t("common.working")
+                : tool.downloads
+                ? t("tool.runDownload")
+                : t("tool.apply")}
             </button>
           </div>
         </>
@@ -222,6 +352,7 @@ function Control({
   onChange: (next: string | number | boolean | File | null) => void;
   disabled?: boolean;
 }) {
+  const { t } = useI18n();
   const label = (
     <div
       style={{
@@ -402,7 +533,9 @@ function Control({
         >
           <Upload size={14} strokeWidth={1.7} />
           <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {file ? `${file.name} · ${(file.size / 1024).toFixed(0)} KB` : "Choose a file…"}
+            {file
+              ? `${file.name} · ${(file.size / 1024).toFixed(0)} KB`
+              : t("common.chooseFile")}
           </span>
           <input
             type="file"
@@ -451,6 +584,7 @@ function Control({
 }
 
 function ToolReportView({ outcome, onClose }: { outcome: ToolOutcome; onClose: () => void }) {
+  const { t } = useI18n();
   const report = outcome.report!;
   const warn = outcome.status === "warn";
   return (
@@ -583,7 +717,7 @@ function ToolReportView({ outcome, onClose }: { outcome: ToolOutcome; onClose: (
 
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 22 }}>
         <button type="button" className="btn-primary-rounded" onClick={onClose}>
-          Done
+          {t("common.done")}
         </button>
       </div>
     </div>

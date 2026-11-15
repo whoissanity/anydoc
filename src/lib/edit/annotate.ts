@@ -1,6 +1,7 @@
-import { BlendMode, StandardFonts, rgb, type PDFPage } from "pdf-lib";
+import { BlendMode, rgb, type PDFPage } from "pdf-lib";
 import type { AnnotationItem, StickyNoteItem } from "@/lib/types";
 import { loadPdfLib, savePdfBytes } from "@/lib/document/pages";
+import { embedAppFont } from "@/lib/text/embedded-fonts";
 
 /** Burns review markup into the PDF content stream; an overlay is only a preview and would vanish on save. */
 
@@ -78,8 +79,8 @@ export async function applyAnnotationsToPdf(
 
   const doc = await loadPdfLib(bytes);
   const pages = doc.getPages();
-  const noteFont = await doc.embedFont(StandardFonts.Helvetica);
-  const noteBold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const noteFont = await embedAppFont(doc);
+  const noteBold = await embedAppFont(doc, { bold: true });
 
   for (const annot of annotations) {
     const page = pages[annot.pageIndex];

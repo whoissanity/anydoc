@@ -1,10 +1,15 @@
-import { PDFDocument, StandardFonts, rgb, PageSizes, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, rgb, PageSizes, type PDFFont, type PDFPage } from "pdf-lib";
+import { createAppFontCache } from "@/lib/text/embedded-fonts";
+import { detectScripts } from "@/lib/fonts/scripts";
 
-/** Stdlib fonts are WinAnsi; a character outside that repertoire would throw when the page is drawn. */
+/** Only control characters are unsafe; real script faces are embedded for the rest. */
 function pdfSafe(value: string): string {
-  return value
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, " ")
-    .replace(/[^\u0000-\u00FF\u2013\u2014\u2018\u2019\u201C\u201D\u2022\u2026\u20AC]/g, "?");
+  return value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, " ");
+}
+
+/** Last-resort WinAnsi text when an unsupported glyph run cannot be encoded. */
+function winAnsiFallback(value: string): string {
+  return value.replace(/[^\u0000-\u00FF\u2013\u2014\u2018\u2019\u201C\u201D\u2022\u2026\u20AC]/g, "?");
 }
 
 function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
@@ -29,8 +34,13 @@ export async function renderTextPdf(text: string, title: string): Promise<Uint8A
   doc.setTitle(title);
   doc.setProducer("AnyDoc");
 
-  const regular = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const fontFor = createAppFontCache(doc);
+  let regular: PDFFont | undefined;
+  let bold: PDFFont | undefined;
+  const baseFont = async (isBold: boolean) => {
+    if (isBold) return (bold ??= await fontFor.get({ bold: true }));
+    return (regular ??= await fontFor.get());
+  };
   const margin = 54;
   const [pageWidth, pageHeight] = PageSizes.Letter;
   const maxWidth = pageWidth - margin * 2;
@@ -57,14 +67,12 @@ export async function renderTextPdf(text: string, title: string): Promise<Uint8A
 
     let content = rawLine.trim();
     let size = 11;
-    let font = regular;
     let indent = 0;
 
     if (heading) {
       const level = heading[1].length;
       content = heading[2];
       size = level === 1 ? 20 : level === 2 ? 16 : 13;
-      font = bold;
       cursorY -= 6;
     } else if (bullet) {
       content = `• ${bullet[1]}`;
@@ -74,16 +82,36 @@ export async function renderTextPdf(text: string, title: string): Promise<Uint8A
       indent = 14;
     }
 
+    // Mixed-script imports can contain Arabic and CJK on different lines; embed the
+    // matching pack per script-bearing line while reusing the cached Latin faces.
+    let font: PDFFont;
+    if (detectScripts(content).length > 0) {
+      font = await fontFor.get({ text: content, bold: !!heading });
+    } else {
+      font = await baseFont(!!heading);
+    }
+
     const lineHeight = size * 1.38;
     for (const line of wrapText(pdfSafe(content), font, size, maxWidth - indent)) {
       ensureSpace(lineHeight);
-      page.drawText(line, {
-        x: margin + indent,
-        y: cursorY,
-        size,
-        font,
-        color: rgb(0.05, 0.05, 0.05),
-      });
+      try {
+        page.drawText(line, {
+          x: margin + indent,
+          y: cursorY,
+          size,
+          font,
+          color: rgb(0.05, 0.05, 0.05),
+        });
+      } catch {
+        // A script outside the vendored packs must not fail the whole import.
+        page.drawText(winAnsiFallback(line), {
+          x: margin + indent,
+          y: cursorY,
+          size,
+          font,
+          color: rgb(0.05, 0.05, 0.05),
+        });
+      }
       cursorY -= lineHeight;
     }
     if (heading) cursorY -= 4;

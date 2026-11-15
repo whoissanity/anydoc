@@ -1,6 +1,8 @@
 "use client";
 
 import { Upload, FileText, Image as ImageIcon, FileCode, CheckCircle2 } from "lucide-react";
+import { useI18n } from "@/components/providers/I18nProvider";
+import { PrivacyPill } from "@/components/shared/PrivacyPill";
 
 export default function LandingWorkspace({
   onOpenFile,
@@ -9,6 +11,7 @@ export default function LandingWorkspace({
   onOpenFile: () => void;
   onCreate: (kind: string) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div
       style={{
@@ -83,7 +86,7 @@ export default function LandingWorkspace({
               margin: 0,
             }}
           >
-            The most private document editor on the internet.
+            {t("landing.tagline")}
           </h1>
 
           <p
@@ -95,8 +98,7 @@ export default function LandingWorkspace({
               maxWidth: 540,
             }}
           >
-            Every PDF, form, redaction and conversion runs 100% inside your browser.
-            No uploads, no accounts, no tracking — your documents never leave your device.
+            {t("landing.lede")}
           </p>
         </div>
 
@@ -153,7 +155,7 @@ export default function LandingWorkspace({
                 letterSpacing: "-0.01em",
               }}
             >
-              Drop any document here
+              {t("landing.dropTitle")}
             </h2>
 
             <p
@@ -165,7 +167,7 @@ export default function LandingWorkspace({
                 lineHeight: 1.45,
               }}
             >
-              Click to browse your device or drag and drop any file directly onto this workbench.
+              {t("landing.dropBody")}
             </p>
 
             <button
@@ -177,7 +179,7 @@ export default function LandingWorkspace({
               }}
             >
               <Upload size={16} strokeWidth={1.5} />
-              <span>Select Document</span>
+              <span>{t("landing.selectDocument")}</span>
             </button>
           </div>
 
@@ -517,6 +519,22 @@ export default function LandingWorkspace({
               <span>From any document</span>
             </button>
           </div>
+        </div>
+
+        <div
+          style={{
+            alignSelf: "stretch",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            gap: 8,
+            flexWrap: "wrap",
+          }}
+        >
+          <span style={{ fontSize: 11, color: "var(--c-text-muted)" }}>
+            Every request this tab makes is counted here.
+          </span>
+          <PrivacyPill />
         </div>
       </div>
     </div>

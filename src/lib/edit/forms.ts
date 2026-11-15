@@ -1,8 +1,8 @@
 import {
-  StandardFonts,
   rgb,
   PDFName,
   PDFString,
+  PDFHexString,
   PDFCheckBox,
   PDFDropdown,
   PDFOptionList,
@@ -13,6 +13,7 @@ import {
 import type { FormFieldDraft } from "@/lib/types";
 import { loadPdfLib, savePdfBytes } from "@/lib/document/pages";
 import { newId } from "@/lib/id";
+import { embedAppFont } from "@/lib/text/embedded-fonts";
 
 export type PdfFieldKind = "checkbox" | "radio" | "dropdown" | "list" | "text" | "unknown";
 
@@ -32,7 +33,7 @@ export async function embedFormFields(
 ): Promise<Uint8Array> {
   const doc = await loadPdfLib(bytes);
   const form = doc.getForm();
-  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const font = await embedAppFont(doc);
 
   for (const f of fields) {
     const page = doc.getPage(f.pageIndex);
@@ -44,7 +45,7 @@ export async function embedFormFields(
       switch (f.type) {
         case "text": {
           const field = form.createTextField(name);
-          field.addToPage(page, { x: f.x, y, width: f.width, height: f.height });
+          field.addToPage(page, { x: f.x, y, width: f.width, height: f.height, font });
           field.setText(f.value || "");
           field.setFontSize(11);
           field.updateAppearances(font);
@@ -70,7 +71,7 @@ export async function embedFormFields(
         case "dropdown": {
           const field = form.createDropdown(name);
           field.addOptions(f.options?.length ? f.options : ["Option 1", "Option 2"]);
-          field.addToPage(page, { x: f.x, y, width: f.width, height: f.height });
+          field.addToPage(page, { x: f.x, y, width: f.width, height: f.height, font });
           if (f.value) field.select(f.value);
           field.updateAppearances(font);
           break;
@@ -78,7 +79,7 @@ export async function embedFormFields(
         case "signature":
         case "submit": {
           const field = form.createTextField(name);
-          field.addToPage(page, { x: f.x, y, width: f.width, height: f.height });
+          field.addToPage(page, { x: f.x, y, width: f.width, height: f.height, font });
           field.setText(f.type === "signature" ? "" : "Submit");
           field.updateAppearances(font);
           page.drawRectangle({
@@ -98,7 +99,8 @@ export async function embedFormFields(
     }
   }
 
-  return savePdfBytes(doc);
+  form.updateFieldAppearances(font);
+  return savePdfBytes(doc, { updateFieldAppearances: false });
 }
 
 export async function readExistingFormFields(bytes: Uint8Array): Promise<FormFieldDraft[]> {
@@ -390,8 +392,202 @@ export async function fillFormValues(
       // ignore missing
     }
   }
-  form.updateFieldAppearances(await doc.embedFont(StandardFonts.Helvetica));
-  return savePdfBytes(doc);
+  form.updateFieldAppearances(await embedAppFont(doc));
+  return savePdfBytes(doc, { updateFieldAppearances: false });
+}
+
+export interface FormDataResult {
+  bytes: Uint8Array;
+  filled: number;
+  skipped: number;
+}
+
+function fieldDisplayValue(field: PDFField): string {
+  const kind = pdfFieldKind(field);
+  try {
+    if (kind === "checkbox") return (field as PDFCheckBox).isChecked() ? "Yes" : "Off";
+    if (kind === "radio") return (field as PDFRadioGroup).getSelected() ?? "";
+    if (kind === "dropdown") return (field as PDFDropdown).getSelected()[0] ?? "";
+    if (kind === "list") return (field as PDFOptionList).getSelected()[0] ?? "";
+    if (kind === "text") return (field as PDFTextField).getText() ?? "";
+  } catch {
+    return "";
+  }
+  return "";
+}
+
+/** Reads the current AcroForm key/value pairs; unreadable fields are skipped. */
+export async function readFormValues(bytes: Uint8Array): Promise<Record<string, string>> {
+  const doc = await loadPdfLib(bytes);
+  const values: Record<string, string> = {};
+  for (const field of doc.getForm().getFields()) {
+    values[field.getName()] = fieldDisplayValue(field);
+  }
+  return values;
+}
+
+function pdfText(value: string): string {
+  return PDFHexString.fromText(value).toString();
+}
+
+/** Exports current form values as an FDF 1.2 file; hex strings keep names/values safe. */
+export async function exportFormFdf(bytes: Uint8Array): Promise<Uint8Array> {
+  const doc = await loadPdfLib(bytes);
+  const entries = doc
+    .getForm()
+    .getFields()
+    .map((field) => `<< /T ${pdfText(field.getName())} /V ${pdfText(fieldDisplayValue(field))} >>`)
+    .join("\n");
+
+  const fdf = `%FDF-1.2
+1 0 obj
+<< /FDF << /Fields [
+${entries}
+] >> >>
+endobj
+trailer
+<< /Root 1 0 R >>
+%%EOF`;
+  return new TextEncoder().encode(fdf);
+}
+
+function unescapePdfLiteral(value: string): string {
+  return value.replace(/\\([nrtbf()\\]|[0-7]{1,3})/g, (_match, escape: string) => {
+    if (escape.length > 1) return String.fromCharCode(parseInt(escape, 8));
+    return (
+      { n: "\n", r: "\r", t: "\t", b: "\b", f: "\f", "(": "(", ")": ")", "\\": "\\" }[
+        escape
+      ] ?? escape
+    );
+  });
+}
+
+function decodePdfText(raw: string): string {
+  const value = raw.trim();
+  if (!value) return "";
+  if (value.startsWith("<") && value.endsWith(">")) {
+    const hex = value.slice(1, -1).replace(/\s+/g, "");
+    if (hex.length % 2 === 1) return "";
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i += 1) {
+      bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+    }
+    if (hex.toUpperCase().startsWith("FEFF")) {
+      return new TextDecoder("utf-16be").decode(bytes.subarray(2)).slice(0, 100_000);
+    }
+    return new TextDecoder("latin1").decode(bytes).slice(0, 100_000);
+  }
+  if (value.startsWith("(") && value.endsWith(")")) {
+    return unescapePdfLiteral(value.slice(1, -1)).slice(0, 100_000);
+  }
+  return value.slice(0, 100_000);
+}
+
+function parseFdfFields(text: string): Record<string, string> {
+  const values: Record<string, string> = {};
+  const fieldPattern = /<<([\s\S]*?)>>/g;
+  let match: RegExpExecArray | null;
+  while ((match = fieldPattern.exec(text))) {
+    const body = match[1];
+    const name = /\/T\s*(<[^>]*>|\([^)]*\))/.exec(body)?.[1];
+    const value = /\/V\s*(<[^>]*>|\([^)]*\))/.exec(body)?.[1];
+    if (!name || value === undefined) continue;
+    const key = decodePdfText(name);
+    if (key) values[key] = decodePdfText(value);
+  }
+  return values;
+}
+
+function parseXfdfFields(text: string): Record<string, string> {
+  if (typeof DOMParser === "undefined") return {};
+  const parsed = new DOMParser().parseFromString(text, "application/xml");
+  if (parsed.getElementsByTagName("parsererror").length > 0) return {};
+  const root = parsed.documentElement;
+  if (!root || root.localName !== "xfdf") return {};
+
+  const values: Record<string, string> = {};
+  for (const node of Array.from(root.getElementsByTagNameNS("*", "field"))) {
+    const name = node.getAttribute("name");
+    if (!name) continue;
+    const value = node.getElementsByTagNameNS("*", "value")[0]?.textContent ?? "";
+    values[name] = value;
+  }
+  return values;
+}
+
+function parseFormImport(data: string | ArrayBuffer | Uint8Array): Record<string, string> {
+  const size =
+    typeof data === "string" ? data.length : data instanceof Uint8Array ? data.byteLength : data.byteLength;
+  if (size > 5 * 1024 * 1024) throw new Error("Form data is larger than 5 MB");
+  const text =
+    typeof data === "string"
+      ? data
+      : new TextDecoder().decode(data instanceof Uint8Array ? data : new Uint8Array(data));
+  if (/<xfdf[\s>]/i.test(text)) return parseXfdfFields(text);
+  return parseFdfFields(text);
+}
+
+/** Applies FDF or XFDF values by field name; unknown names and malformed data are skipped. */
+export async function importFormData(
+  bytes: Uint8Array,
+  data: string | ArrayBuffer | Uint8Array
+): Promise<FormDataResult> {
+  const values = parseFormImport(data);
+  const doc = await loadPdfLib(bytes);
+  const form = doc.getForm();
+  const font = await embedAppFont(doc);
+  let filled = 0;
+  let skipped = 0;
+
+  for (const field of form.getFields()) {
+    const raw = values[field.getName()];
+    if (raw === undefined) {
+      skipped += 1;
+      continue;
+    }
+
+    const kind = pdfFieldKind(field);
+    try {
+      if (kind === "text") {
+        (field as PDFTextField).setText(raw);
+      } else if (kind === "checkbox") {
+        const cb = field as PDFCheckBox;
+        if (/^(yes|on|true|1)$/i.test(raw.trim())) cb.check();
+        else cb.uncheck();
+      } else if (kind === "radio") {
+        const radio = field as PDFRadioGroup;
+        if (radio.getOptions().some((option) => option === raw)) radio.select(raw);
+        else radio.clear();
+      } else if (kind === "dropdown") {
+        const dropdown = field as PDFDropdown;
+        const option = dropdown
+          .getOptions()
+          .find((candidate) => candidate.toLowerCase() === raw.trim().toLowerCase());
+        if (option !== undefined) dropdown.select(option);
+        else dropdown.clear();
+      } else if (kind === "list") {
+        const list = field as PDFOptionList;
+        const option = list
+          .getOptions()
+          .find((candidate) => candidate.toLowerCase() === raw.trim().toLowerCase());
+        if (option !== undefined) list.select(option);
+        else list.clear();
+      } else {
+        skipped += 1;
+        continue;
+      }
+      if (kind === "checkbox" || kind === "radio") {
+        (field as PDFCheckBox).updateAppearances();
+      } else {
+        (field as PDFTextField).updateAppearances(font);
+      }
+      filled += 1;
+    } catch {
+      skipped += 1;
+    }
+  }
+
+  return { bytes: await savePdfBytes(doc, { updateFieldAppearances: false }), filled, skipped };
 }
 
 export { PDFString };
