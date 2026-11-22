@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LiveRequestCount } from "@/components/marketing/LiveRequestCount";
-import { FormatSpectrum } from "@/components/shared/FormatSpectrum";
+import { MarketingHero } from "@/components/marketing/MarketingHero";
 import { SITE, sourceUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -77,25 +76,7 @@ const TOOLS: { name: string; gist: string }[] = [
 export default function LandingPage() {
   return (
     <main id="main" tabIndex={-1}>
-      <section className="mkt-hero" aria-labelledby="hero-title">
-        <div className="mkt-container">
-          <p className="mkt-mono-line">open source / MIT / no account</p>
-          <h1 id="hero-title">{SITE.tagline}</h1>
-
-          <LiveRequestCount />
-
-          <div className="mkt-actions">
-            <Link href={SITE.editorHref} className="mkt-btn mkt-btn-primary">
-              Open the editor
-            </Link>
-            <a href={SITE.repo} className="mkt-btn mkt-btn-secondary">
-              Read the source
-            </a>
-          </div>
-
-          <FormatSpectrum className="mkt-spectrum" />
-        </div>
-      </section>
+      <MarketingHero />
 
       <section id="privacy" className="mkt-section" aria-labelledby="privacy-title">
         <div className="mkt-container">

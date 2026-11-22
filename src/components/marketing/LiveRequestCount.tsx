@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/providers/I18nProvider";
 import { useNetworkActivity } from "@/lib/privacy/network-monitor";
 
 /**
@@ -7,14 +8,21 @@ import { useNetworkActivity } from "@/lib/privacy/network-monitor";
  * stored or sent. Renders 0 on the server and live after hydration.
  */
 export function LiveRequestCount({ variant = "hero" }: { variant?: "hero" | "inline" }) {
+  const { t } = useI18n();
   const { external, local } = useNetworkActivity();
   const count = external.length;
   const clean = count === 0;
 
   if (variant === "inline") {
+    const inlineKey =
+      count === 0
+        ? "privacy.network.pillClean"
+        : count === 1
+          ? "privacy.network.pillOne"
+          : "privacy.network.pillMany";
     return (
       <span className="mkt-count-inline" data-clean={clean} aria-live="polite">
-        {count} external {count === 1 ? "request" : "requests"}
+        {t(inlineKey, { count })}
       </span>
     );
   }
@@ -23,19 +31,17 @@ export function LiveRequestCount({ variant = "hero" }: { variant?: "hero" | "inl
     <div className="mkt-count" data-clean={clean}>
       <p className="mkt-count-number" aria-live="polite">
         <span className="sr-only">
-          {count} requests sent off this device since you opened this page.
+          {count} {t("mkt.countLabel1")} {t("mkt.countLabel2")}
         </span>
         <span aria-hidden="true">{count}</span>
       </p>
       <div className="mkt-count-meta">
         <p className="mkt-count-label">
-          requests sent off this device
+          {t("mkt.countLabel1")}
           <br />
-          since you opened this page
+          {t("mkt.countLabel2")}
         </p>
-        <p className="mkt-count-sub">
-          {local} same-origin file loads. Open your browser&apos;s Network tab and check.
-        </p>
+        <p className="mkt-count-sub">{t("mkt.countSub", { local })}</p>
       </div>
     </div>
   );

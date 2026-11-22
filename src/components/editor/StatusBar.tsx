@@ -59,7 +59,7 @@ export function StatusBar() {
           fontSize: 12,
         }}
       >
-        {statusMessage}
+        {statusMessage === "Ready" ? "" : statusMessage}
       </span>
 
       {hasDoc && (

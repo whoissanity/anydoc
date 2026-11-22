@@ -54,7 +54,7 @@ export default function LandingWorkspace({
               color: "var(--c-text-muted)",
             }}
           >
-            {SITE.name} / open source / runs in this tab
+            {SITE.name} / {t("landing.eyebrow")}
           </p>
           <h1 className="display-headline" style={{ margin: 0 }}>
             {t("landing.tagline")}
@@ -138,24 +138,24 @@ export default function LandingWorkspace({
           }}
         >
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--c-text-muted)" }}>
-            or start from nothing
+            {t("landing.orStart")}
           </span>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <button type="button" className="btn-secondary-rounded" onClick={() => onCreate("text")}>
               <FileText size={14} strokeWidth={1.5} />
-              <span>From text</span>
+              <span>{t("landing.fromText")}</span>
             </button>
             <button type="button" className="btn-secondary-rounded" onClick={() => onCreate("images")}>
               <ImageIcon size={14} strokeWidth={1.5} />
-              <span>From images</span>
+              <span>{t("landing.fromImages")}</span>
             </button>
             <button type="button" className="btn-secondary-rounded" onClick={() => onCreate("html")}>
               <FileCode size={14} strokeWidth={1.5} />
-              <span>From HTML</span>
+              <span>{t("landing.fromHtml")}</span>
             </button>
             <button type="button" className="btn-secondary-rounded" onClick={() => onCreate("documents")}>
               <FileText size={14} strokeWidth={1.5} />
-              <span>From any document</span>
+              <span>{t("landing.fromDocument")}</span>
             </button>
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function LandingWorkspace({
           }}
         >
           <span style={{ fontSize: 11, color: "var(--c-text-muted)" }}>
-            Every request this tab makes is counted here.
+            {t("landing.requestsCounted")}
           </span>
           <PrivacyPill />
         </div>
