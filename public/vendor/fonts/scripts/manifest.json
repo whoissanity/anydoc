@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-15T14:15:42.264Z",
+  "packs": {
+    "arabic": {
+      "id": "arabic",
+      "label": "Arabic",
+      "cssFamily": "Noto Sans Arabic",
+      "file": "NotoSansArabic-Regular.ttf",
+      "url": "/vendor/fonts/scripts/NotoSansArabic-Regular.ttf",
+      "bytes": 271652,
+      "sha256": "7ed3fe069312aceac454f17cf613a30f95271d6ed7ce58005ed4d016bd3823d7"
+    },
+    "devanagari": {
+      "id": "devanagari",
+      "label": "Devanagari",
+      "cssFamily": "Noto Sans Devanagari",
+      "file": "NotoSansDevanagari-Regular.ttf",
+      "url": "/vendor/fonts/scripts/NotoSansDevanagari-Regular.ttf",
+      "bytes": 277680,
+      "sha256": "573e525d9f4923d34645fe752475419f45f8dec5a8e43f3e83c5c5f43d1f2ff9"
+    },
+    "cjk-sc": {
+      "id": "cjk-sc",
+      "label": "Chinese (Simplified)",
+      "cssFamily": "Noto Sans SC",
+      "file": "NotoSansSC-Regular.otf",
+      "url": "/vendor/fonts/scripts/NotoSansSC-Regular.otf",
+      "bytes": 8331336,
+      "sha256": "faa6c9df652116dde789d351359f3d7e5d2285a2b2a1f04a2d7244df706d5ea9"
+    },
+    "cjk-jp": {
+      "id": "cjk-jp",
+      "label": "Japanese",
+      "cssFamily": "Noto Sans JP",
+      "file": "NotoSansJP-Regular.otf",
+      "url": "/vendor/fonts/scripts/NotoSansJP-Regular.otf",
+      "bytes": 4533028,
+      "sha256": "dff723ba59d57d136764a04b9b2d03205544f7cd785a711442d6d2d085ac5073"
+    },
+    "cjk-kr": {
+      "id": "cjk-kr",
+      "label": "Korean",
+      "cssFamily": "Noto Sans KR",
+      "file": "NotoSansKR-Regular.otf",
+      "url": "/vendor/fonts/scripts/NotoSansKR-Regular.otf",
+      "bytes": 4644748,
+      "sha256": "69975a0ac8472717870aefeab0a4d52739308d90856b9955313b2ad5e0148d68"
+    }
+  }
+}
