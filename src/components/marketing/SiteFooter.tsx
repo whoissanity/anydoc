@@ -35,7 +35,7 @@ export function SiteFooter() {
         </div>
 
         <p className="mkt-colophon">
-          Set in Host Grotesk and Liberation Mono (
+          Set in Merriweather, Libre Franklin and Liberation Mono (
           <a href={SITE.fontLicense}>SIL OFL 1.1</a>), served from this origin. Code under the{" "}
           <a href={SITE.license}>MIT license</a>. No accounts, no trackers, no CDN.{" "}
           <LiveRequestCount variant="inline" />.

@@ -1823,7 +1823,7 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
                 </option>
               )}
               {TEXT_FONT_CHOICES.map((f) => (
-                <option key={f.label} value={f.value} style={{ color: "#111" }}>
+                <option key={f.label} value={f.value}>
                   {f.label}
                 </option>
               ))}

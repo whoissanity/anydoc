@@ -29,7 +29,7 @@ export function LanguageSelector() {
       }}
     >
       {LOCALES.map((code) => (
-        <option key={code} value={code} style={{ color: "#111" }}>
+        <option key={code} value={code}>
           {LOCALE_LABELS[code]}
         </option>
       ))}

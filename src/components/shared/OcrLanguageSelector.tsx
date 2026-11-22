@@ -83,7 +83,7 @@ export function OcrLanguageSelector({ compact = false }: { compact?: boolean }) 
         >
           <optgroup label="Installed Languages">
             {installed.map((p) => (
-              <option key={p.code} value={p.code} style={{ color: "#111" }}>
+              <option key={p.code} value={p.code}>
                 {p.label} ({p.code})
               </option>
             ))}
@@ -98,7 +98,7 @@ export function OcrLanguageSelector({ compact = false }: { compact?: boolean }) 
             </optgroup>
           )}
           <optgroup label="Manage">
-            <option value="__manage__" style={{ color: "#111", fontWeight: "bold" }}>
+            <option value="__manage__" style={{ fontWeight: "bold" }}>
               ⚙ Manage Language Packs…
             </option>
           </optgroup>

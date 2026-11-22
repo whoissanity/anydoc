@@ -26,7 +26,7 @@ export default function EditorError({
         padding: 24,
         backgroundColor: "#000000",
         color: "rgba(255, 255, 255, 0.87)",
-        fontFamily: "'Host Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: "'Libre Franklin', -apple-system, BlinkMacSystemFont, sans-serif",
       }}
     >
       <div

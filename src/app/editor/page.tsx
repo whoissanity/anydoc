@@ -14,7 +14,7 @@ const EditorShell = dynamic(
           placeItems: "center",
           backgroundColor: "#000000",
           color: "rgba(255, 255, 255, 0.87)",
-          fontFamily: "'Host Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily: "'Libre Franklin', -apple-system, BlinkMacSystemFont, sans-serif",
           fontWeight: 600,
         }}
       >
