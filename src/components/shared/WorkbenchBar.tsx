@@ -233,6 +233,75 @@ function MarkupColorControls() {
   );
 }
 
+const DRAW_PRESETS = ["#1a6eff", "#FF453A", "#30D158", "#FFD600", "#BF5AF2", "#FF9F0A", "#FFFFFF", "#000000"];
+
+// Colour controls for the freehand draw/ink tool.
+function DrawColorControls() {
+  const tool = useEditorStore((s) => s.tool);
+  const drawColor = useEditorStore((s) => s.drawColor);
+  const setDrawColor = useEditorStore((s) => s.setDrawColor);
+
+  if (tool !== "draw") {
+    return null;
+  }
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6, paddingLeft: 4 }}>
+      <span
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          color: "var(--c-text-subtle)",
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+        }}
+      >
+        Ink
+      </span>
+      <div style={{ display: "flex", gap: 3 }}>
+        {DRAW_PRESETS.map((color) => (
+          <button
+            key={color}
+            type="button"
+            title={`Use ${color}`}
+            aria-label={`Ink colour ${color}`}
+            onClick={() => setDrawColor(color)}
+            style={{
+              width: 16,
+              height: 16,
+              borderRadius: 999,
+              backgroundColor: color,
+              border:
+                drawColor.toLowerCase() === color.toLowerCase()
+                  ? "2px solid var(--c-text)"
+                  : "1px solid var(--c-border-strong)",
+              boxShadow: "var(--shadow-raised-sm)",
+              transition: "transform 120ms ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.15)")}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "none")}
+          />
+        ))}
+      </div>
+      <input
+        type="color"
+        value={drawColor}
+        title="Custom colour"
+        aria-label="Custom ink colour"
+        onChange={(e) => setDrawColor(e.target.value)}
+        style={{
+          width: 22,
+          height: 20,
+          padding: 0,
+          border: "none",
+          background: "transparent",
+          cursor: "pointer",
+        }}
+      />
+    </div>
+  );
+}
+
 /** Font, size and colour for the text box that is currently being edited. */
 function TextStyleControls() {
   const textEdit = useEditorStore((s) => s.textEdit);
@@ -362,6 +431,36 @@ function TextStyleControls() {
             cursor: "pointer",
           }}
         />
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, marginLeft: 4 }}>
+          <span style={{ fontSize: 10, color: "var(--c-text-subtle)" }}>Rotate</span>
+          <select
+            aria-label="Text rotation"
+            title="Text rotation"
+            value={active.rotation ?? 0}
+            onChange={(e) => patch({ rotation: Number(e.target.value) })}
+            style={{
+              height: 22,
+              fontSize: 11,
+              background: "transparent",
+              color: "inherit",
+              border: "none",
+              outline: "none",
+              cursor: "pointer",
+              width: 70,
+            }}
+          >
+            <option value={0}>0°</option>
+            <option value={15}>15°</option>
+            <option value={30}>30°</option>
+            <option value={45}>45°</option>
+            <option value={90}>90°</option>
+            <option value={180}>180°</option>
+            <option value={270}>270°</option>
+            <option value={345}>-15°</option>
+            <option value={330}>-30°</option>
+            <option value={315}>-45°</option>
+          </select>
+        </span>
       </div>
       <div
         style={{
@@ -1085,6 +1184,8 @@ export function WorkbenchBar({
               <TextStyleControls />
 
               <MarkupColorControls />
+
+              <DrawColorControls />
 
               <ActionBtn
                 title="Recognise text on this page with Tesseract (adds a selectable OCR layer)"

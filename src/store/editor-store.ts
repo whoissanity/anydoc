@@ -105,6 +105,8 @@ interface EditorState {
   underlineColor: string;
   strikeColor: string;
   markupOpacity: number;
+  drawColor: string;
+  recentFonts: string[];
   redactions: RedactBox[];
   bates: BatesOptions;
   statusMessage: string;
@@ -173,12 +175,15 @@ interface EditorState {
   clearMarkup: () => void;
   addStickyNote: (note: StickyNoteItem) => void;
   removeStickyNote: (id: string) => void;
+  updateStickyNote: (id: string, patch: Partial<StickyNoteItem>) => void;
   setOcrPage: (page: OcrPage) => void;
   setOcrLanguage: (lang: string) => void;
   clearOcrPages: () => void;
   setAnnotColor: (color: string) => void;
   setAnnotColorFor: (type: "highlight" | "underline" | "strikethrough", color: string) => void;
   setMarkupOpacity: (opacity: number) => void;
+  setDrawColor: (color: string) => void;
+  addRecentFont: (font: string) => void;
   addRedaction: (box: RedactBox) => void;
   removeRedaction: (id: string) => void;
   clearRedactions: () => void;
@@ -259,6 +264,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   underlineColor: "#000000",
   strikeColor: "#000000",
   markupOpacity: 0.42,
+  drawColor: "#1a6eff",
+  recentFonts: [],
   redactions: [],
   bates: defaultBates,
   statusMessage: "Ready",
@@ -434,6 +441,11 @@ export const useEditorStore = create<EditorState>((set) => ({
     set((s) => ({ stickyNotes: [...s.stickyNotes, note], dirty: true })),
   removeStickyNote: (id) =>
     set((s) => ({ stickyNotes: s.stickyNotes.filter((n) => n.id !== id), dirty: true })),
+  updateStickyNote: (id, patch) =>
+    set((s) => ({
+      stickyNotes: s.stickyNotes.map((n) => (n.id === id ? { ...n, ...patch } : n)),
+      dirty: true,
+    })),
   setOcrPage: (page) =>
     set((s) => ({
       ocrPages: [...s.ocrPages.filter((p) => p.pageIndex !== page.pageIndex), page],
@@ -455,6 +467,13 @@ export const useEditorStore = create<EditorState>((set) => ({
         : { strikeColor: color }
     ),
   setMarkupOpacity: (markupOpacity) => set({ markupOpacity }),
+  setDrawColor: (drawColor) => set({ drawColor }),
+  addRecentFont: (font) =>
+    set((s) => {
+      const existing = s.recentFonts.filter((f) => f !== font);
+      const next = [font, ...existing].slice(0, 5);
+      return { recentFonts: next };
+    }),
   addRedaction: (box) => set((s) => ({ redactions: [...s.redactions, box] })),
   removeRedaction: (id) =>
     set((s) => ({ redactions: s.redactions.filter((r) => r.id !== id) })),

@@ -186,6 +186,8 @@ export interface StickyNoteItem {
   pageIndex: number;
   x: number;
   y: number;
+  width: number;
+  height: number;
   text: string;
   author: string;
   date: string;
