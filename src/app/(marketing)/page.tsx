@@ -100,7 +100,7 @@ export default function LandingPage() {
       <section id="privacy" className="mkt-section" aria-labelledby="privacy-title">
         <div className="mkt-container">
           <header className="mkt-section-head">
-            <p className="mkt-marker">§01</p>
+            <p className="mkt-marker">1.</p>
             <h2 id="privacy-title">The privacy contract</h2>
             <p className="mkt-section-lede">
               Each clause points at the file that makes it true. Don&apos;t take my word for
@@ -130,7 +130,7 @@ export default function LandingPage() {
       <section id="tools" className="mkt-section" aria-labelledby="tools-title">
         <div className="mkt-container">
           <header className="mkt-section-head">
-            <p className="mkt-marker">§02</p>
+            <p className="mkt-marker">2.</p>
             <h2 id="tools-title">What it does</h2>
           </header>
 
@@ -156,7 +156,7 @@ export default function LandingPage() {
       <section id="why" className="mkt-section" aria-labelledby="why-title">
         <div className="mkt-container">
           <header className="mkt-section-head">
-            <p className="mkt-marker">§03</p>
+            <p className="mkt-marker">3.</p>
             <h2 id="why-title">Why this exists</h2>
           </header>
           <div className="mkt-prose">
@@ -182,7 +182,7 @@ export default function LandingPage() {
       <section id="open-source" className="mkt-section" aria-labelledby="source-title">
         <div className="mkt-container">
           <header className="mkt-section-head">
-            <p className="mkt-marker">§04</p>
+            <p className="mkt-marker">4.</p>
             <h2 id="source-title">Source and contact</h2>
           </header>
 

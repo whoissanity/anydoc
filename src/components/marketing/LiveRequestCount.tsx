@@ -25,7 +25,7 @@ export function LiveRequestCount({ variant = "hero" }: { variant?: "hero" | "inl
         <span className="sr-only">
           {count} requests sent off this device since you opened this page.
         </span>
-        <span aria-hidden="true">§{String(count).padStart(2, "0")}</span>
+        <span aria-hidden="true">{count}</span>
       </p>
       <div className="mkt-count-meta">
         <p className="mkt-count-label">
