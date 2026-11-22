@@ -246,9 +246,9 @@ body:has(.mkt) {
 
 .mkt-count {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 8px 28px;
+  gap: 8px 20px;
   margin-top: clamp(36px, 6vw, 64px);
   padding: 20px 0;
   border-top: 1px solid var(--c-border-subtle);
@@ -258,10 +258,10 @@ body:has(.mkt) {
 .mkt-count-number {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: clamp(96px, 17vw, 184px);
-  font-weight: 700;
-  line-height: 0.85;
-  letter-spacing: -0.06em;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--c-brand);
 }
