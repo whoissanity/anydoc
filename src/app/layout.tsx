@@ -3,7 +3,7 @@ import "./globals.css";
 import { I18nProvider } from "@/components/providers/I18nProvider";
 
 export const metadata: Metadata = {
-  title: "AnyDoc — 100% Private Document Editor",
+  title: "AnyDoc — Edit any document. It never leaves this tab.",
   description:
     "AnyDoc is the most private way to work with PDFs: viewing, editing, forms, redaction and conversion run entirely in your browser — your files never leave your device.",
 };

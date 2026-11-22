@@ -2,6 +2,9 @@
  * Marketing surface only. Everything is scoped under .mkt (plus the body
  * opt-in class) so the editor shell's fixed layout and global styles stay
  * exactly as they were.
+ *
+ * Voice: a black page with hairlines, mono "system" labels, and colour used
+ * only as file-format ink (--ink-*) and the single green "clean" signal.
  */
 
 html:has(.mkt) {
@@ -17,14 +20,12 @@ body:has(.mkt) {
 }
 
 .mkt {
-  --mkt-max: 1120px;
+  --mkt-max: 1040px;
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background:
-    radial-gradient(ellipse 75% 46% at 50% -8%, var(--c-primary-subtle), transparent 72%),
-    var(--c-bg);
+  background: var(--c-bg);
   color: var(--c-text);
   font-family: var(--font-body);
   font-size: 15px;
@@ -71,9 +72,9 @@ body:has(.mkt) {
 
 .mkt code {
   font-family: var(--font-mono);
-  font-size: 0.88em;
+  font-size: 0.86em;
   padding: 1px 5px;
-  border-radius: 5px;
+  border-radius: 4px;
   background: var(--c-hover);
   color: var(--c-text);
   overflow-wrap: anywhere;
@@ -85,9 +86,7 @@ body:has(.mkt) {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: var(--c-surface);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
+  background: var(--c-bg);
   border-bottom: 1px solid var(--c-border-subtle);
 }
 
@@ -96,63 +95,51 @@ body:has(.mkt) {
   align-items: center;
   gap: 20px;
   flex-wrap: wrap;
-  min-height: 64px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  min-height: 60px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .mkt-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   color: var(--c-text-heading);
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.02em;
   text-decoration: none;
 }
 
-.mkt-brand-mark {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
-  background: var(--c-primary);
-  color: var(--c-btn-text);
-  font-size: 13px;
-  font-weight: 800;
-  box-shadow: var(--shadow-raised-sm);
-}
-
 .mkt-nav {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   flex-wrap: wrap;
   margin-left: auto;
 }
 
 .mkt-nav a {
-  padding: 8px 11px;
+  padding: 8px 10px;
   border-radius: var(--radius-btn);
   color: var(--c-text-muted);
-  font-size: 13px;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 12px;
   text-decoration: none;
 }
 
 .mkt-nav a:hover {
-  background: var(--c-hover);
-  color: var(--c-text);
+  color: var(--c-text-heading);
 }
 
 .mkt-nav .mkt-nav-cta {
   margin-left: 8px;
-  padding: 10px 18px;
+  padding: 8px 14px;
   background: var(--c-btn-bg);
   color: var(--c-btn-text);
-  box-shadow: var(--shadow-raised-sm);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .mkt-nav .mkt-nav-cta:hover {
@@ -166,51 +153,77 @@ body:has(.mkt) {
   margin: 0 0 14px;
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--c-accent-text);
+  color: var(--c-text-muted);
+}
+
+.mkt-mono-line {
+  margin: 0;
+  color: var(--c-text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
 }
 
 .mkt h2 {
   margin: 0;
-  font-size: clamp(30px, 4vw, 46px);
-  line-height: 1.08;
+  font-size: clamp(26px, 3.4vw, 36px);
+  line-height: 1.1;
   letter-spacing: -0.03em;
   font-weight: 800;
   color: var(--c-text-heading);
 }
 
+.mkt-section-head {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: baseline;
+  margin-bottom: 36px;
+}
+
+.mkt-marker {
+  grid-row: 1;
+  margin: 0;
+  color: var(--c-text-subtle);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.mkt-section-head h2 {
+  grid-column: 2;
+}
+
 .mkt-section-lede {
-  max-width: 680px;
-  margin: 16px 0 0;
+  grid-column: 2;
+  max-width: 600px;
+  margin: 12px 0 0;
   color: var(--c-text-muted);
   font-size: 16px;
-  line-height: 1.6;
 }
 
 .mkt-text-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 20px;
+  margin: 28px 0 0 64px;
   color: var(--c-text);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
 .mkt-text-link:hover {
-  color: var(--c-primary);
+  color: var(--c-text-heading);
 }
 
 .mkt-placeholder {
   display: inline;
   padding: 1px 6px;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px dashed var(--warning);
-  background: var(--c-primary-subtle);
   color: var(--c-text);
   font-weight: 600;
 }
@@ -218,48 +231,73 @@ body:has(.mkt) {
 /* ── Hero ─────────────────────────────────────────────────────────────── */
 
 .mkt-hero {
-  padding: clamp(56px, 9vw, 104px) 0 clamp(40px, 6vw, 64px);
-}
-
-.mkt-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  padding: 6px 12px;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-btn);
-  background: var(--c-surface-raised);
-  color: var(--c-text-muted);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.mkt-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--c-brand);
+  padding: clamp(48px, 8vw, 96px) 0 clamp(40px, 6vw, 72px);
 }
 
 .mkt-hero h1 {
-  max-width: 940px;
-  margin: 26px 0 0;
-  font-size: clamp(40px, 6.4vw, 76px);
+  max-width: 820px;
+  margin: 20px 0 0;
+  font-size: clamp(38px, 6vw, 68px);
   line-height: 1.02;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.04em;
   font-weight: 800;
   color: var(--c-text-heading);
 }
 
-.mkt-lede {
-  max-width: 660px;
-  margin: 22px 0 0;
+.mkt-count {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin-top: clamp(36px, 6vw, 64px);
+  padding: 20px 0;
+  border-top: 1px solid var(--c-border-subtle);
+  border-bottom: 1px solid var(--c-border-subtle);
+}
+
+.mkt-count-number {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(96px, 17vw, 184px);
+  font-weight: 700;
+  line-height: 0.85;
+  letter-spacing: -0.06em;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-brand);
+}
+
+.mkt-count[data-clean="false"] .mkt-count-number {
+  color: var(--warning);
+}
+
+.mkt-count-meta {
+  padding-bottom: 6px;
+}
+
+.mkt-count-label {
+  margin: 0;
+  color: var(--c-text-heading);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mkt-count-sub {
+  max-width: 320px;
+  margin: 10px 0 0;
   color: var(--c-text-muted);
-  font-size: clamp(16px, 2vw, 20px);
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mkt-count-inline {
+  font-family: var(--font-mono);
+  color: var(--c-brand);
+  white-space: nowrap;
+}
+
+.mkt-count-inline[data-clean="false"] {
+  color: var(--warning);
 }
 
 .mkt-actions {
@@ -274,12 +312,11 @@ body:has(.mkt) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  height: 48px;
-  padding: 0 24px;
+  height: 44px;
+  padding: 0 22px;
   border: 1px solid transparent;
   border-radius: var(--radius-btn);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   text-decoration: none;
   transition: background-color 140ms ease, border-color 140ms ease;
@@ -288,7 +325,6 @@ body:has(.mkt) {
 .mkt-btn-primary {
   background: var(--c-btn-bg);
   color: var(--c-btn-text);
-  box-shadow: var(--shadow-raised);
 }
 
 .mkt-btn-primary:hover {
@@ -305,151 +341,118 @@ body:has(.mkt) {
   background: var(--c-hover);
 }
 
-/* ── Reassurance strip ────────────────────────────────────────────────── */
-
-.mkt-strip {
-  border-top: 1px solid var(--c-border-subtle);
-  border-bottom: 1px solid var(--c-border-subtle);
-  background: var(--c-bg-varied-1);
-}
-
-.mkt-strip-inner {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.mkt-strip-item {
-  margin: 0;
-  padding: 18px 8px;
-  text-align: center;
-  color: var(--c-text-muted);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.mkt-strip-item + .mkt-strip-item {
-  border-left: 1px solid var(--c-border-subtle);
+.mkt-spectrum {
+  margin-top: 40px;
 }
 
 /* ── Sections ─────────────────────────────────────────────────────────── */
 
 .mkt-section {
-  padding: clamp(56px, 8vw, 96px) 0;
-  border-bottom: 1px solid var(--c-border-subtle);
-  scroll-margin-top: 84px;
-}
-
-.mkt-section:last-of-type {
-  border-bottom: none;
-}
-
-.mkt-split {
-  display: grid;
-  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
-  gap: clamp(28px, 5vw, 64px);
-  align-items: start;
-}
-
-.mkt-split-aside {
-  position: sticky;
-  top: 96px;
+  padding: clamp(48px, 7vw, 80px) 0;
+  border-top: 1px solid var(--c-border-subtle);
+  scroll-margin-top: 72px;
 }
 
 /* ── Privacy contract ─────────────────────────────────────────────────── */
 
-.mkt-contract {
-  display: grid;
-  gap: 14px;
+.mkt-clauses {
   margin: 0;
   padding: 0;
   list-style: none;
-  counter-reset: contract;
 }
 
-.mkt-contract li {
-  position: relative;
-  padding: 18px 20px 18px 58px;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-soft);
-  background: var(--c-surface-raised);
-  color: var(--c-text-muted);
-  font-size: 14px;
-  line-height: 1.65;
-  counter-increment: contract;
-}
-
-.mkt-contract li::before {
-  content: counter(contract, decimal-leading-zero);
-  position: absolute;
-  left: 20px;
-  top: 18px;
-  color: var(--c-accent-text);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-}
-
-.mkt-contract strong {
-  color: var(--c-text);
-  font-weight: 700;
-}
-
-/* ── Features ─────────────────────────────────────────────────────────── */
-
-.mkt-grid {
+.mkt-clause {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 14px;
-  margin-top: 36px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 32px;
+  align-items: baseline;
+  margin-left: 64px;
+  padding: 16px 0;
+  border-top: 1px solid var(--c-border-subtle);
+  font-size: 15px;
 }
 
-.mkt-card {
-  padding: 22px;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-card);
-  background: var(--c-surface-raised);
+.mkt-clause:last-child {
+  border-bottom: 1px solid var(--c-border-subtle);
 }
 
-.mkt-card h3 {
-  margin: 0 0 8px;
-  color: var(--c-text);
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.mkt-card p {
-  margin: 0;
+.mkt-clause-text {
   color: var(--c-text-muted);
-  font-size: 14px;
-  line-height: 1.6;
+}
+
+.mkt-clause-text strong {
+  color: var(--c-text-heading);
+  font-weight: 700;
+}
+
+.mkt-verify {
+  color: var(--c-text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mkt-verify:hover {
+  color: var(--c-brand);
+}
+
+/* ── Tools (table of contents) ────────────────────────────────────────── */
+
+.mkt-toc {
+  margin: 0 0 0 64px;
+  padding: 0;
+  list-style: none;
+}
+
+.mkt-toc-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 11px 0;
+}
+
+.mkt-toc-name {
+  color: var(--c-text-heading);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mkt-toc-leader {
+  flex: 1 1 24px;
+  min-width: 16px;
+  border-bottom: 1px dotted var(--c-border-strong);
+  transform: translateY(-4px);
+}
+
+.mkt-toc-gist {
+  color: var(--c-text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: right;
 }
 
 .mkt-note {
-  margin: 18px 0 0;
-  padding: 16px 18px;
-  border: 1px solid var(--c-border-strong);
-  border-radius: var(--radius-soft);
-  background: var(--c-bg-varied-1);
+  max-width: 640px;
+  margin: 28px 0 0 64px;
+  padding-left: 16px;
+  border-left: 2px solid var(--warning);
   color: var(--c-text-muted);
   font-size: 13px;
   line-height: 1.65;
 }
 
-/* ── Why / about / contact ────────────────────────────────────────────── */
+/* ── Why / source ─────────────────────────────────────────────────────── */
 
 .mkt-prose {
-  max-width: 760px;
-  margin-top: 24px;
+  max-width: 660px;
+  margin-left: 64px;
 }
 
 .mkt-prose p {
   margin: 0 0 18px;
-  color: var(--c-text-muted);
-  font-size: clamp(16px, 1.8vw, 19px);
+  color: var(--c-text);
+  font-size: 17px;
   line-height: 1.65;
 }
 
@@ -457,110 +460,53 @@ body:has(.mkt) {
   margin-bottom: 0;
 }
 
-.mkt-placeholder-block {
-  margin: 0;
+.mkt-facts {
+  margin: 0 0 0 64px;
 }
 
-.mkt-about-copy {
-  padding: 24px;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-card);
-  background: var(--c-surface-raised);
+.mkt-facts > div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--c-border-subtle);
 }
 
-.mkt-contact {
-  padding: 24px;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-card);
-  background: var(--c-surface-raised);
+.mkt-facts > div:last-child {
+  border-bottom: 1px solid var(--c-border-subtle);
 }
 
-.mkt-contact p {
+.mkt-facts dt {
+  color: var(--c-text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.mkt-facts dd {
   margin: 0;
   color: var(--c-text-muted);
-  font-size: 15px;
 }
 
-.mkt-contact p + p {
-  margin-top: 12px;
-}
-
-.mkt-contact a,
+.mkt-facts a,
 .mkt-legal a,
-.mkt-footer-license a {
+.mkt-colophon a {
   color: var(--c-text);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.mkt-contact a:hover,
+.mkt-facts a:hover,
 .mkt-legal a:hover,
-.mkt-footer-license a:hover {
-  color: var(--c-primary);
-}
-
-/* ── Open source ──────────────────────────────────────────────────────── */
-
-.mkt-repo {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-top: 32px;
-  padding: clamp(24px, 4vw, 36px);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-modal);
-  background: var(--c-surface-raised);
-}
-
-.mkt-repo h3 {
-  margin: 0;
+.mkt-colophon a:hover {
   color: var(--c-text-heading);
-  font-family: var(--font-mono);
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.mkt-repo p {
-  max-width: 520px;
-  margin: 6px 0 0;
-  color: var(--c-text-muted);
-  font-size: 14px;
-}
-
-.mkt-license {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 12px;
-  border: 1px solid var(--c-border-strong);
-  border-radius: 999px;
-  color: var(--c-text);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.mkt-repo-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.mkt-repo-actions .mkt-text-link {
-  margin-top: 0;
 }
 
 /* ── Footer ───────────────────────────────────────────────────────────── */
 
 .mkt-footer {
   margin-top: auto;
-  padding: 40px 0 28px;
+  padding: 36px 0 28px;
   border-top: 1px solid var(--c-border-subtle);
-  background: var(--c-bg-varied-1);
   font-size: 13px;
 }
 
@@ -589,24 +535,25 @@ body:has(.mkt) {
 
 .mkt-footer-links a {
   color: var(--c-text-muted);
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 12px;
   text-decoration: none;
 }
 
 .mkt-footer-links a:hover {
-  color: var(--c-text);
+  color: var(--c-text-heading);
   text-decoration: underline;
 }
 
-.mkt-footer-license {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 18px;
+.mkt-footer .mkt-colophon {
+  max-width: none;
   margin-top: 28px;
   padding-top: 18px;
   border-top: 1px solid var(--c-border-subtle);
-  color: var(--c-text-muted);
-  font-size: 12px;
+  color: var(--c-text-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.7;
 }
 
 /* ── Legal pages ──────────────────────────────────────────────────────── */
@@ -617,14 +564,14 @@ body:has(.mkt) {
 }
 
 .mkt-legal .mkt-container {
-  max-width: 820px;
+  max-width: 780px;
 }
 
 .mkt-legal h1 {
   margin: 0;
-  font-size: clamp(34px, 5vw, 52px);
+  font-size: clamp(32px, 5vw, 48px);
   line-height: 1.06;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   font-weight: 800;
   color: var(--c-text-heading);
 }
@@ -640,15 +587,17 @@ body:has(.mkt) {
 
 .mkt-legal-intro {
   margin: 28px 0 0;
-  color: var(--c-text-muted);
+  color: var(--c-text);
   font-size: 17px;
   line-height: 1.65;
 }
 
 .mkt-legal h2 {
   margin: 44px 0 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--c-border-subtle);
   color: var(--c-text-heading);
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -688,45 +637,53 @@ body:has(.mkt) {
 
 /* ── Responsive ───────────────────────────────────────────────────────── */
 
-@media (max-width: 860px) {
-  .mkt-split {
-    grid-template-columns: 1fr;
-  }
-
-  .mkt-split-aside {
-    position: static;
-  }
-}
-
 @media (max-width: 720px) {
-  .mkt-header-inner {
-    gap: 6px;
-  }
-
-  .mkt-nav {
-    width: 100%;
-    margin-left: 0;
-    justify-content: space-between;
-    gap: 0;
-  }
-
-  .mkt-nav a {
-    padding: 8px 6px;
-    font-size: 12px;
-  }
-
-  .mkt-nav .mkt-nav-cta {
-    margin-left: 0;
-    padding: 9px 12px;
-  }
-
-  .mkt-strip-inner {
+  .mkt-section-head {
     grid-template-columns: 1fr;
   }
 
-  .mkt-strip-item + .mkt-strip-item {
-    border-left: none;
-    border-top: 1px solid var(--c-border-subtle);
+  .mkt-section-head h2,
+  .mkt-section-lede {
+    grid-column: 1;
+  }
+
+  .mkt-marker {
+    margin-bottom: 8px;
+  }
+
+  .mkt-clause,
+  .mkt-toc,
+  .mkt-note,
+  .mkt-prose,
+  .mkt-facts {
+    margin-left: 0;
+  }
+
+  .mkt-text-link {
+    margin-left: 0;
+  }
+
+  .mkt-clause {
+    grid-template-columns: 1fr;
+  }
+
+  .mkt-toc-row {
+    flex-wrap: wrap;
+    gap: 2px 12px;
+  }
+
+  .mkt-toc-leader {
+    display: none;
+  }
+
+  .mkt-toc-gist {
+    flex-basis: 100%;
+    text-align: left;
+  }
+
+  .mkt-facts > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
   }
 }
 
@@ -735,17 +692,16 @@ body:has(.mkt) {
     padding: 0 20px;
   }
 
+  .mkt-nav a:not(.mkt-nav-cta) {
+    padding: 8px 6px;
+  }
+
+  .mkt-nav {
+    gap: 0;
+  }
+
   .mkt-actions .mkt-btn {
     flex: 1 1 100%;
-  }
-
-  .mkt-contract li {
-    padding: 16px 16px 16px 48px;
-  }
-
-  .mkt-contract li::before {
-    left: 16px;
-    top: 16px;
   }
 }
 

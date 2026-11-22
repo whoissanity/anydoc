@@ -37,69 +37,91 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+/* Liberation Mono (SIL OFL) is already vendored for PDF substitution; reused for UI "system voice". */
+@font-face {
+  font-family: "Vendored Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/vendor/fonts/LiberationMono-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Vendored Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/vendor/fonts/LiberationMono-Bold.ttf") format("truetype");
+}
+
 :root,
 [data-theme="dark"] {
-  /* ─── Apple Dark Mode: Surface Elevation via Tone ─── */
-  --c-bg: #000000;                     /* Base surface: Pure Black */
-  --c-bg-varied-1: #1C1C1E;            /* Secondary surface */
-  --c-bg-varied-2: #2C2C2E;            /* Tertiary surface */
-  --c-bg-sunken: #141416;              /* Sunken input well */
+  /* Black base. Depth comes from tone and hairlines, never blur or glow. */
+  --c-bg: #000000;
+  --c-bg-varied-1: #0b0b0b;
+  --c-bg-varied-2: #141414;
+  --c-bg-sunken: #0a0a0a;
 
-  /* Glassmorphic Materials (iOS/macOS Control Center & Window Panes) */
-  --c-surface: rgba(28, 28, 30, 0.78); /* Semi-transparent frosted chrome */
-  --c-surface-solid: #1C1C1E;          /* Opaque secondary */
-  --c-surface-raised: #1C1C1E;         /* Layered card surface 1 */
-  --c-surface-elevated: #2C2C2E;       /* Layered card surface 2 */
-  --c-surface-quaternary: #3A3A3C;     /* Highest interactive surface */
-  --c-surface-sunken: #151517;         /* Sunken input field background */
-  --c-input-bg: #1C1C1E;
-  --c-modal-surface: rgba(44, 44, 46, 0.85); /* Glassmorphic modal material */
+  --c-surface: #0b0b0b;
+  --c-surface-solid: #0b0b0b;
+  --c-surface-raised: #0f0f0f;
+  --c-surface-elevated: #171717;
+  --c-surface-quaternary: #212121;
+  --c-surface-sunken: #070707;
+  --c-input-bg: #0f0f0f;
+  --c-modal-surface: #111111;
 
-  /* Materials Blur */
-  --glass-blur: blur(20px);
-  --glass-blur-heavy: blur(30px);
+  --glass-blur: none;
+  --glass-blur-heavy: none;
 
-  /* ─── Semantic Hierarchy for Text ─── */
-  --c-text-heading: #FFFFFF;                                /* Headings: pure white */
-  --c-text: rgba(255, 255, 255, 0.87);                     /* Primary text: 87% white */
-  --c-text-muted: rgba(255, 255, 255, 0.60);               /* Secondary text: 60% white */
-  --c-text-subtle: rgba(255, 255, 255, 0.38);              /* Tertiary text: 38% white */
-  --c-text-on-dark: #FFFFFF;
+  --c-text-heading: #f4f4ef;
+  --c-text: rgba(244, 244, 239, 0.86);
+  --c-text-muted: rgba(244, 244, 239, 0.64);
+  --c-text-subtle: rgba(244, 244, 239, 0.44);
+  --c-text-on-dark: #f4f4ef;
 
-  /* ─── Vibrant Tint Accents (Apple HIG) ─── */
-  --c-accent-blue: #0A84FF;            /* Apple Blue */
-  --c-accent-green: #30D158;           /* Apple Green */
-  --c-accent-indigo: #5E5CE6;          /* Apple Indigo */
-  --c-accent-orange: #FF9F0A;          /* Apple Orange */
-  --c-accent-red: #FF453A;             /* Apple Red */
+  --c-accent-blue: #6b97ff;
+  --c-accent-green: #3ddc84;
+  --c-accent-indigo: #8aa6ff;
+  --c-accent-orange: #f5a524;
+  --c-accent-red: #ff5a4d;
 
-  --c-primary: #0A84FF;
-  --c-primary-hover: #409CFF;
-  --c-primary-subtle: rgba(10, 132, 255, 0.16);
-  --c-accent-text: #0A84FF;
+  /* Primary is paper-white: colour is reserved for file formats (--ink-*). */
+  --c-primary: #f4f4ef;
+  --c-primary-hover: #ffffff;
+  --c-primary-subtle: rgba(244, 244, 239, 0.1);
+  --c-accent-text: #f4f4ef;
 
-  --c-btn-bg: #0A84FF;                 /* Vibrant primary action */
-  --c-btn-hover: #409CFF;
-  --c-btn-text: #FFFFFF;
-  --c-btn-secondary: #2C2C2E;
-  --c-btn-secondary-hover: #3A3A3C;
-  --c-btn-secondary-text: rgba(255, 255, 255, 0.87);
+  --c-btn-bg: #f4f4ef;
+  --c-btn-hover: #ffffff;
+  --c-btn-text: #0a0a0a;
+  --c-btn-secondary: #171717;
+  --c-btn-secondary-hover: #212121;
+  --c-btn-secondary-text: rgba(244, 244, 239, 0.86);
 
-  --c-brand: #30D158;                  /* Apple Green status */
-  --c-brand-subtle: rgba(48, 209, 88, 0.15);
+  --c-brand: #3ddc84;
+  --c-brand-subtle: rgba(61, 220, 132, 0.14);
 
-  --danger: #FF453A;
-  --success: #30D158;
-  --warning: #FF9F0A;
+  --danger: #ff5a4d;
+  --success: #3ddc84;
+  --warning: #f5a524;
 
-  --c-hover: rgba(255, 255, 255, 0.08);
-  --c-active: rgba(255, 255, 255, 0.14);
-  --c-overlay: rgba(0, 0, 0, 0.72);
+  /* One ink per file family. Add a family here and in FORMATS (src/lib/site.ts). */
+  --ink-pdf: #ff5a3c;
+  --ink-word: #5b8cff;
+  --ink-sheet: #3ddc84;
+  --ink-slide: #f5a524;
+  --ink-odf: #c4e04a;
+  --ink-ebook: #2ec4b6;
+  --ink-image: #ff8fb1;
+  --ink-text: #b9b9b0;
 
-  /* Surface Elevation via Tone: subtle hairline borders & delicate ambient tone */
-  --c-border: rgba(255, 255, 255, 0.10);
-  --c-border-subtle: rgba(255, 255, 255, 0.08);
-  --c-border-strong: rgba(255, 255, 255, 0.18);
+  --c-hover: rgba(255, 255, 255, 0.07);
+  --c-active: rgba(255, 255, 255, 0.12);
+  --c-overlay: rgba(0, 0, 0, 0.78);
+
+  --c-border: rgba(255, 255, 255, 0.12);
+  --c-border-subtle: rgba(255, 255, 255, 0.09);
+  --c-border-strong: rgba(255, 255, 255, 0.22);
 
   --shadow-divider-b: 0 1px 0 rgba(255, 255, 255, 0.08);
   --shadow-divider-t: 0 -1px 0 rgba(255, 255, 255, 0.08);
@@ -107,9 +129,9 @@
   --shadow-divider-l: -1px 0 0 rgba(255, 255, 255, 0.08);
 
   /* Minimal tone-based elevation instead of heavy drop shadows */
-  --shadow-raised-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
-  --shadow-raised: 0 2px 8px rgba(0, 0, 0, 0.35);
-  --shadow-raised-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-raised-sm: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-raised: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-raised-lg: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1);
 
   /* Staged document shadow on Apple black background with ambient rim highlight */
   --shadow-staged-doc: 0 24px 50px -10px rgba(0, 0, 0, 0.9), 0 10px 20px -8px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.12);
@@ -122,11 +144,11 @@
   --c-icon-disabled: rgba(255, 255, 255, 0.46);
 
   /* Shapes */
-  --radius-soft: 14px;
-  --radius-card: 16px;
-  --radius-modal: 20px;
-  --radius-btn: 9999px;
-  --radius-input: 10px;
+  --radius-soft: 8px;
+  --radius-card: 10px;
+  --radius-modal: 14px;
+  --radius-btn: 6px;
+  --radius-input: 6px;
 
   /* Dimensions */
   --bar-h: 38px;
@@ -140,7 +162,7 @@
   --font-display: "Host Grotesk", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
   --font-body: "Host Grotesk", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   --font-ui: "Host Grotesk", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-  --font-mono: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  --font-mono: "Vendored Mono", "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
   --headline-size: 59.8px;
 
   /* Backward Compatibility Aliases */
@@ -857,5 +879,42 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .mobile-nav button {
     transition: none;
+  }
+}
+
+/* Format spectrum: shared by the marketing page and the editor landing screen. */
+.format-spectrum {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.format-spectrum-item {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.format-spectrum-bar {
+  display: block;
+  height: 6px;
+  border-radius: 1px;
+}
+.format-spectrum-label {
+  display: block;
+  margin-top: 8px;
+  overflow: hidden;
+  color: var(--c-text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .format-spectrum {
+    flex-wrap: wrap;
+    row-gap: 12px;
+  }
+  .format-spectrum-item {
+    flex: 0 0 calc((100% - 12px) / 5);
   }
 }

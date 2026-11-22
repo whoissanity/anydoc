@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { LiveRequestCount } from "@/components/marketing/LiveRequestCount";
+import { BrandMark } from "@/components/shared/BrandMark";
 import { SITE } from "@/lib/site";
 
 export function SiteFooter() {
@@ -8,9 +10,7 @@ export function SiteFooter() {
         <div className="mkt-footer-inner">
           <div>
             <Link href="/" className="mkt-brand">
-              <span className="mkt-brand-mark" aria-hidden="true">
-                A
-              </span>
+              <BrandMark />
               <span>{SITE.name}</span>
             </Link>
             <p>Private document editing that runs inside your browser.</p>
@@ -25,25 +25,21 @@ export function SiteFooter() {
                 <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
               </li>
               <li>
-                <Link href="/privacy">Privacy Policy</Link>
+                <Link href="/privacy">Privacy</Link>
               </li>
               <li>
-                <Link href="/terms">Terms of Service</Link>
+                <Link href="/terms">Terms</Link>
               </li>
             </ul>
           </nav>
         </div>
 
-        <div className="mkt-footer-license">
-          <span>
-            AnyDoc is released under the{" "}
-            <a href={SITE.license}>MIT License</a>.
-          </span>
-          <span>
-            Bundled Host Grotesk typeface:{" "}
-            <a href={SITE.fontLicense}>SIL Open Font License 1.1</a>.
-          </span>
-        </div>
+        <p className="mkt-colophon">
+          Set in Host Grotesk and Liberation Mono (
+          <a href={SITE.fontLicense}>SIL OFL 1.1</a>), served from this origin. Code under the{" "}
+          <a href={SITE.license}>MIT license</a>. No accounts, no trackers, no CDN.{" "}
+          <LiveRequestCount variant="inline" />.
+        </p>
       </div>
     </footer>
   );
