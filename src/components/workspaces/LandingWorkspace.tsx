@@ -1,8 +1,16 @@
 "use client";
 
+<<<<<<< HEAD
 import { Upload, FileText, Image as ImageIcon, FileCode, CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { PrivacyPill } from "@/components/shared/PrivacyPill";
+=======
+import { Upload, FileText, Image as ImageIcon, FileCode } from "lucide-react";
+import { useI18n } from "@/components/providers/I18nProvider";
+import { FormatSpectrum } from "@/components/shared/FormatSpectrum";
+import { PrivacyPill } from "@/components/shared/PrivacyPill";
+import { SITE } from "@/lib/site";
+>>>>>>> origin/v0/anydoc-design-system
 
 export default function LandingWorkspace({
   onOpenFile,
@@ -21,7 +29,11 @@ export default function LandingWorkspace({
         alignItems: "center",
         backgroundColor: "var(--c-bg)",
         overflowY: "auto",
+<<<<<<< HEAD
         padding: "48px 24px",
+=======
+        padding: "56px 24px",
+>>>>>>> origin/v0/anydoc-design-system
       }}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
@@ -37,6 +49,7 @@ export default function LandingWorkspace({
       <div
         style={{
           width: "100%",
+<<<<<<< HEAD
           maxWidth: "var(--page-width-regular)",
           display: "flex",
           flexDirection: "column",
@@ -96,10 +109,40 @@ export default function LandingWorkspace({
               color: "var(--c-text-muted)",
               margin: 0,
               maxWidth: 540,
+=======
+          maxWidth: 760,
+          display: "flex",
+          flexDirection: "column",
+          gap: 32,
+        }}
+      >
+        <header style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <p
+            style={{
+              margin: 0,
+              fontFamily: "var(--font-mono)",
+              fontSize: 12,
+              color: "var(--c-text-muted)",
+            }}
+          >
+            {SITE.name} / {t("landing.eyebrow")}
+          </p>
+          <h1 className="display-headline" style={{ margin: 0 }}>
+            {t("landing.tagline")}
+          </h1>
+          <p
+            style={{
+              margin: 0,
+              maxWidth: 540,
+              fontSize: 15,
+              lineHeight: 1.6,
+              color: "var(--c-text-muted)",
+>>>>>>> origin/v0/anydoc-design-system
             }}
           >
             {t("landing.lede")}
           </p>
+<<<<<<< HEAD
         </div>
 
         <div
@@ -153,10 +196,45 @@ export default function LandingWorkspace({
                 color: "var(--c-text)",
                 margin: "0 0 8px 0",
                 letterSpacing: "-0.01em",
+=======
+        </header>
+
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={onOpenFile}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onOpenFile();
+            }
+          }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: 20,
+            padding: "36px 32px",
+            borderRadius: "var(--radius-card)",
+            border: "1.5px dashed var(--c-border-strong)",
+            backgroundColor: "var(--c-surface-raised)",
+            cursor: "pointer",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: 20,
+                fontWeight: 700,
+                letterSpacing: "-0.02em",
+                color: "var(--c-text-heading)",
+>>>>>>> origin/v0/anydoc-design-system
               }}
             >
               {t("landing.dropTitle")}
             </h2>
+<<<<<<< HEAD
 
             <p
               style={{
@@ -456,21 +534,45 @@ export default function LandingWorkspace({
               </span>
             </div>
           </div>
+=======
+            <p style={{ margin: 0, fontSize: 13, color: "var(--c-text-muted)", lineHeight: 1.5 }}>
+              {t("landing.dropBody")}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="btn-primary-rounded"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenFile();
+            }}
+          >
+            <Upload size={16} strokeWidth={1.5} />
+            <span>{t("landing.selectDocument")}</span>
+          </button>
+
+          <FormatSpectrum />
+>>>>>>> origin/v0/anydoc-design-system
         </div>
 
         <div
           style={{
+<<<<<<< HEAD
             width: "100%",
             maxWidth: 880,
             padding: "20px 24px",
             borderRadius: "var(--radius-card)",
             backgroundColor: "var(--c-bg-varied-1)",
             boxShadow: "var(--shadow-raised-sm)",
+=======
+>>>>>>> origin/v0/anydoc-design-system
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             flexWrap: "wrap",
             gap: 12,
+<<<<<<< HEAD
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -517,13 +619,41 @@ export default function LandingWorkspace({
             >
               <FileText size={14} strokeWidth={1.5} />
               <span>From any document</span>
+=======
+            paddingTop: 20,
+            borderTop: "1px solid var(--c-border-subtle)",
+          }}
+        >
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--c-text-muted)" }}>
+            {t("landing.orStart")}
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <button type="button" className="btn-secondary-rounded" onClick={() => onCreate("text")}>
+              <FileText size={14} strokeWidth={1.5} />
+              <span>{t("landing.fromText")}</span>
+            </button>
+            <button type="button" className="btn-secondary-rounded" onClick={() => onCreate("images")}>
+              <ImageIcon size={14} strokeWidth={1.5} />
+              <span>{t("landing.fromImages")}</span>
+            </button>
+            <button type="button" className="btn-secondary-rounded" onClick={() => onCreate("html")}>
+              <FileCode size={14} strokeWidth={1.5} />
+              <span>{t("landing.fromHtml")}</span>
+            </button>
+            <button type="button" className="btn-secondary-rounded" onClick={() => onCreate("documents")}>
+              <FileText size={14} strokeWidth={1.5} />
+              <span>{t("landing.fromDocument")}</span>
+>>>>>>> origin/v0/anydoc-design-system
             </button>
           </div>
         </div>
 
         <div
           style={{
+<<<<<<< HEAD
             alignSelf: "stretch",
+=======
+>>>>>>> origin/v0/anydoc-design-system
             display: "flex",
             alignItems: "center",
             justifyContent: "flex-end",
@@ -532,7 +662,11 @@ export default function LandingWorkspace({
           }}
         >
           <span style={{ fontSize: 11, color: "var(--c-text-muted)" }}>
+<<<<<<< HEAD
             Every request this tab makes is counted here.
+=======
+            {t("landing.requestsCounted")}
+>>>>>>> origin/v0/anydoc-design-system
           </span>
           <PrivacyPill />
         </div>

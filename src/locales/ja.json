@@ -330,7 +330,11 @@
   "privacy.network.sameOrigin": "同一オリジンの読み込み",
   "privacy.network.active": "公開されている Content-Security-Policy も、自サイト以外のオリジンをブロックします。",
   "privacy.network.inactive": "エディターの実行開始後に監視が始まります。",
+<<<<<<< HEAD
   "fonts.title": "Local fonts",
+=======
+  "fonts.title": "ローカルフォント",
+>>>>>>> origin/v0/anydoc-design-system
   "fonts.description": "A close visual match is always used for document fonts. You can also add your own .ttf, .otf, .woff, or .woff2 files for this device.",
   "fonts.disclosure": "Added fonts stay on this device. You are responsible for having the rights to use any font you add.",
   "fonts.substitution": "When no matching font is found, the closest available substitute is used and labeled as such — never silently presented as the original.",
@@ -345,5 +349,27 @@
   "fonts.quota": "Browser storage is full",
   "fonts.addFailed": "Could not add that font",
   "fonts.unavailable": "Font storage is unavailable in this browser",
+<<<<<<< HEAD
   "fonts.noMatch": "No matching font found, using closest available"
+=======
+  "fonts.noMatch": "No matching font found, using closest available",
+  "nav.privacy": "プライバシー",
+  "nav.tools": "ツール",
+  "nav.source": "ソース",
+  "nav.openEditor": "エディターを開く",
+  "mkt.eyebrow": "オープンソース / MIT / アカウント不要",
+  "mkt.tagline": "あらゆる文書を編集。このタブの外には出ません。",
+  "mkt.readSource": "ソースを読む",
+  "mkt.countLabel1": "このデバイス外へ送信されたリクエスト",
+  "mkt.countLabel2": "このページを開いてから",
+  "mkt.countSub": "同一オリジンのファイル読み込み {local} 件。ブラウザーの「ネットワーク」タブで確認できます。",
+  "mkt.skip": "コンテンツへスキップ",
+  "landing.eyebrow": "オープンソース / このタブ内で動作",
+  "landing.orStart": "または白紙から始める",
+  "landing.fromText": "テキストから",
+  "landing.fromImages": "画像から",
+  "landing.fromHtml": "HTML から",
+  "landing.fromDocument": "任意の文書から",
+  "landing.requestsCounted": "このタブが行うすべてのリクエストをここで数えています。"
+>>>>>>> origin/v0/anydoc-design-system
 }

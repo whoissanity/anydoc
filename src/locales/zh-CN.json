@@ -330,7 +330,11 @@
   "privacy.network.sameOrigin": "同源加载",
   "privacy.network.active": "已发布的内容安全策略也会阻止非本站来源。",
   "privacy.network.inactive": "编辑器运行后开始监视。",
+<<<<<<< HEAD
   "fonts.title": "Local fonts",
+=======
+  "fonts.title": "本地字体",
+>>>>>>> origin/v0/anydoc-design-system
   "fonts.description": "A close visual match is always used for document fonts. You can also add your own .ttf, .otf, .woff, or .woff2 files for this device.",
   "fonts.disclosure": "Added fonts stay on this device. You are responsible for having the rights to use any font you add.",
   "fonts.substitution": "When no matching font is found, the closest available substitute is used and labeled as such — never silently presented as the original.",
@@ -345,5 +349,27 @@
   "fonts.quota": "Browser storage is full",
   "fonts.addFailed": "Could not add that font",
   "fonts.unavailable": "Font storage is unavailable in this browser",
+<<<<<<< HEAD
   "fonts.noMatch": "No matching font found, using closest available"
+=======
+  "fonts.noMatch": "No matching font found, using closest available",
+  "nav.privacy": "隐私",
+  "nav.tools": "工具",
+  "nav.source": "源码",
+  "nav.openEditor": "打开编辑器",
+  "mkt.eyebrow": "开源 / MIT / 无需账户",
+  "mkt.tagline": "编辑任何文档。它绝不离开此标签页。",
+  "mkt.readSource": "查看源码",
+  "mkt.countLabel1": "发送到本设备之外的请求",
+  "mkt.countLabel2": "自你打开此页面以来",
+  "mkt.countSub": "{local} 次同源文件加载。打开浏览器的“网络”面板即可核对。",
+  "mkt.skip": "跳到内容",
+  "landing.eyebrow": "开源 / 在此标签页中运行",
+  "landing.orStart": "或从空白开始",
+  "landing.fromText": "从文本",
+  "landing.fromImages": "从图片",
+  "landing.fromHtml": "从 HTML",
+  "landing.fromDocument": "从任意文档",
+  "landing.requestsCounted": "此标签页发出的每个请求都会在这里计数。"
+>>>>>>> origin/v0/anydoc-design-system
 }

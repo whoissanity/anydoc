@@ -37,6 +37,7 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+<<<<<<< HEAD
 :root,
 [data-theme="dark"] {
   /* ─── Apple Dark Mode: Surface Elevation via Tone ─── */
@@ -100,6 +101,191 @@
   --c-border: rgba(255, 255, 255, 0.10);
   --c-border-subtle: rgba(255, 255, 255, 0.08);
   --c-border-strong: rgba(255, 255, 255, 0.18);
+=======
+/* Merriweather (headlines) and Libre Franklin (body), SIL OFL 1.1, vendored the same way. */
+@font-face {
+  font-family: "Merriweather";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/vendor/fonts/merriweather-latin-ext-700.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Merriweather";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/vendor/fonts/merriweather-latin-700.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Merriweather";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("/vendor/fonts/merriweather-latin-ext-900.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Merriweather";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("/vendor/fonts/merriweather-latin-900.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Libre Franklin";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/vendor/fonts/libre-franklin-latin-ext-400.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Libre Franklin";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/vendor/fonts/libre-franklin-latin-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Libre Franklin";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/vendor/fonts/libre-franklin-latin-ext-500.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Libre Franklin";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/vendor/fonts/libre-franklin-latin-500.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Libre Franklin";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/vendor/fonts/libre-franklin-latin-ext-600.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Libre Franklin";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/vendor/fonts/libre-franklin-latin-600.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Libre Franklin";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/vendor/fonts/libre-franklin-latin-ext-700.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Libre Franklin";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/vendor/fonts/libre-franklin-latin-700.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Liberation Mono (SIL OFL) is already vendored for PDF substitution; reused for UI "system voice". */
+@font-face {
+  font-family: "Vendored Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/vendor/fonts/LiberationMono-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Vendored Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/vendor/fonts/LiberationMono-Bold.ttf") format("truetype");
+}
+
+:root,
+[data-theme="dark"] {
+  /* Black base. Depth comes from tone and hairlines, never blur or glow. */
+  --c-bg: #000000;
+  --c-bg-varied-1: #0b0b0b;
+  --c-bg-varied-2: #141414;
+  --c-bg-sunken: #0a0a0a;
+
+  --c-surface: #0b0b0b;
+  --c-surface-solid: #0b0b0b;
+  --c-surface-raised: #0f0f0f;
+  --c-surface-elevated: #171717;
+  --c-surface-quaternary: #212121;
+  --c-surface-sunken: #070707;
+  --c-input-bg: #0f0f0f;
+  --c-modal-surface: #111111;
+
+  --glass-blur: none;
+  --glass-blur-heavy: none;
+
+  --c-text-heading: #f4f4ef;
+  --c-text: rgba(244, 244, 239, 0.86);
+  --c-text-muted: rgba(244, 244, 239, 0.64);
+  --c-text-subtle: rgba(244, 244, 239, 0.44);
+  --c-text-on-dark: #f4f4ef;
+
+  --c-accent-blue: #6b97ff;
+  --c-accent-green: #3ddc84;
+  --c-accent-indigo: #8aa6ff;
+  --c-accent-orange: #f5a524;
+  --c-accent-red: #ff5a4d;
+
+  /* Primary is paper-white: colour is reserved for file formats (--ink-*). */
+  --c-primary: #f4f4ef;
+  --c-primary-hover: #ffffff;
+  --c-primary-subtle: rgba(244, 244, 239, 0.1);
+  --c-accent-text: #f4f4ef;
+
+  --c-btn-bg: #f4f4ef;
+  --c-btn-hover: #ffffff;
+  --c-btn-text: #0a0a0a;
+  --c-btn-secondary: #171717;
+  --c-btn-secondary-hover: #212121;
+  --c-btn-secondary-text: rgba(244, 244, 239, 0.86);
+
+  --c-brand: #3ddc84;
+  --c-brand-subtle: rgba(61, 220, 132, 0.14);
+
+  --danger: #ff5a4d;
+  --success: #3ddc84;
+  --warning: #f5a524;
+
+  /* One ink per file family. Add a family here and in FORMATS (src/lib/site.ts). */
+  --ink-pdf: #ff5a3c;
+  --ink-word: #5b8cff;
+  --ink-sheet: #3ddc84;
+  --ink-slide: #f5a524;
+  --ink-odf: #c4e04a;
+  --ink-ebook: #2ec4b6;
+  --ink-image: #ff8fb1;
+  --ink-text: #b9b9b0;
+
+  --c-hover: rgba(255, 255, 255, 0.07);
+  --c-active: rgba(255, 255, 255, 0.12);
+  --c-overlay: rgba(0, 0, 0, 0.78);
+
+  --c-border: rgba(255, 255, 255, 0.12);
+  --c-border-subtle: rgba(255, 255, 255, 0.09);
+  --c-border-strong: rgba(255, 255, 255, 0.22);
+>>>>>>> origin/v0/anydoc-design-system
 
   --shadow-divider-b: 0 1px 0 rgba(255, 255, 255, 0.08);
   --shadow-divider-t: 0 -1px 0 rgba(255, 255, 255, 0.08);
@@ -107,9 +293,15 @@
   --shadow-divider-l: -1px 0 0 rgba(255, 255, 255, 0.08);
 
   /* Minimal tone-based elevation instead of heavy drop shadows */
+<<<<<<< HEAD
   --shadow-raised-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow-raised: 0 2px 8px rgba(0, 0, 0, 0.35);
   --shadow-raised-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+=======
+  --shadow-raised-sm: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-raised: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-raised-lg: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1);
+>>>>>>> origin/v0/anydoc-design-system
 
   /* Staged document shadow on Apple black background with ambient rim highlight */
   --shadow-staged-doc: 0 24px 50px -10px rgba(0, 0, 0, 0.9), 0 10px 20px -8px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.12);
@@ -122,11 +314,19 @@
   --c-icon-disabled: rgba(255, 255, 255, 0.46);
 
   /* Shapes */
+<<<<<<< HEAD
   --radius-soft: 14px;
   --radius-card: 16px;
   --radius-modal: 20px;
   --radius-btn: 9999px;
   --radius-input: 10px;
+=======
+  --radius-soft: 8px;
+  --radius-card: 10px;
+  --radius-modal: 14px;
+  --radius-btn: 6px;
+  --radius-input: 6px;
+>>>>>>> origin/v0/anydoc-design-system
 
   /* Dimensions */
   --bar-h: 38px;
@@ -137,10 +337,17 @@
   --page-width-regular: 1200px;
 
   /* Typography */
+<<<<<<< HEAD
   --font-display: "Host Grotesk", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
   --font-body: "Host Grotesk", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   --font-ui: "Host Grotesk", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   --font-mono: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+=======
+  --font-display: "Merriweather", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", Georgia, serif;
+  --font-body: "Libre Franklin", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --font-ui: "Libre Franklin", "Noto Sans", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --font-mono: "Vendored Mono", "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+>>>>>>> origin/v0/anydoc-design-system
   --headline-size: 59.8px;
 
   /* Backward Compatibility Aliases */
@@ -259,6 +466,7 @@ h1,
 .display-headline {
   font-family: var(--font-display);
   font-size: var(--headline-size);
+<<<<<<< HEAD
   font-weight: 800;
   font-style: normal;
   text-decoration: none;
@@ -267,6 +475,26 @@ h1,
   color: var(--c-text-heading);
 }
 
+=======
+  font-weight: 700;
+  font-style: normal;
+  text-decoration: none;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  color: var(--c-text-heading);
+}
+
+select option {
+  background-color: var(--c-bg);
+  color: #ffffff;
+}
+
+[data-theme="light"] select option {
+  background-color: var(--c-bg);
+  color: #000000;
+}
+
+>>>>>>> origin/v0/anydoc-design-system
 button,
 input,
 select,
@@ -859,3 +1087,43 @@ button {
     transition: none;
   }
 }
+<<<<<<< HEAD
+=======
+
+/* Format spectrum: shared by the marketing page and the editor landing screen. */
+.format-spectrum {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.format-spectrum-item {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.format-spectrum-bar {
+  display: block;
+  height: 6px;
+  border-radius: 1px;
+}
+.format-spectrum-label {
+  display: block;
+  margin-top: 8px;
+  overflow: hidden;
+  color: var(--c-text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .format-spectrum {
+    flex-wrap: wrap;
+    row-gap: 12px;
+  }
+  .format-spectrum-item {
+    flex: 0 0 calc((100% - 12px) / 5);
+  }
+}
+>>>>>>> origin/v0/anydoc-design-system

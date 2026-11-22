@@ -233,6 +233,7 @@ function MarkupColorControls() {
   );
 }
 
+<<<<<<< HEAD
 const DRAW_PRESETS = ["#1a6eff", "#FF453A", "#30D158", "#FFD600", "#BF5AF2", "#FF9F0A", "#FFFFFF", "#000000"];
 
 // Colour controls for the freehand draw/ink tool.
@@ -302,6 +303,8 @@ function DrawColorControls() {
   );
 }
 
+=======
+>>>>>>> origin/v0/anydoc-design-system
 /** Font, size and colour for the text box that is currently being edited. */
 function TextStyleControls() {
   const textEdit = useEditorStore((s) => s.textEdit);
@@ -352,7 +355,11 @@ function TextStyleControls() {
           }}
         >
           {TEXT_FONT_CHOICES.map((f) => (
+<<<<<<< HEAD
             <option key={f.label} value={f.value} style={{ color: "#111" }}>
+=======
+            <option key={f.label} value={f.value}>
+>>>>>>> origin/v0/anydoc-design-system
               {f.label}
             </option>
           ))}
@@ -431,6 +438,7 @@ function TextStyleControls() {
             cursor: "pointer",
           }}
         />
+<<<<<<< HEAD
         <span style={{ display: "inline-flex", alignItems: "center", gap: 4, marginLeft: 4 }}>
           <span style={{ fontSize: 10, color: "var(--c-text-subtle)" }}>Rotate</span>
           <select
@@ -461,6 +469,8 @@ function TextStyleControls() {
             <option value={315}>-45°</option>
           </select>
         </span>
+=======
+>>>>>>> origin/v0/anydoc-design-system
       </div>
       <div
         style={{
@@ -1185,8 +1195,11 @@ export function WorkbenchBar({
 
               <MarkupColorControls />
 
+<<<<<<< HEAD
               <DrawColorControls />
 
+=======
+>>>>>>> origin/v0/anydoc-design-system
               <ActionBtn
                 title="Recognise text on this page with Tesseract (adds a selectable OCR layer)"
                 icon={<ScanText size={15} strokeWidth={1.85} />}

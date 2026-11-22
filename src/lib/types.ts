@@ -186,8 +186,11 @@ export interface StickyNoteItem {
   pageIndex: number;
   x: number;
   y: number;
+<<<<<<< HEAD
   width: number;
   height: number;
+=======
+>>>>>>> origin/v0/anydoc-design-system
   text: string;
   author: string;
   date: string;

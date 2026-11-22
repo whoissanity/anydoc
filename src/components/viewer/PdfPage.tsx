@@ -267,6 +267,7 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
     centerY: number;
   } | null>(null);
 
+<<<<<<< HEAD
   const stickyNoteDragRef = useRef<{
     id: string;
     startX: number;
@@ -278,6 +279,8 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
   const [editingStickyNoteId, setEditingStickyNoteId] = useState<string | null>(null);
   const [stickyNoteText, setStickyNoteText] = useState("");
 
+=======
+>>>>>>> origin/v0/anydoc-design-system
   const pdfDocProxy = useEditorStore((s) => s.pdfDocProxy);
   const tool = useEditorStore((s) => s.tool);
   const formFields = useEditorStore((s) => s.formFields);
@@ -299,12 +302,18 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
     return () => window.removeEventListener(USER_FONTS_CHANGED_EVENT, onFontsChanged);
   }, []);
   const annotations = useEditorStore((s) => s.annotations);
+<<<<<<< HEAD
   const stickyNotes = useEditorStore((s) => s.stickyNotes);
+=======
+>>>>>>> origin/v0/anydoc-design-system
   const annotColor = useEditorStore((s) => s.annotColor);
   const underlineColor = useEditorStore((s) => s.underlineColor);
   const strikeColor = useEditorStore((s) => s.strikeColor);
   const markupOpacity = useEditorStore((s) => s.markupOpacity);
+<<<<<<< HEAD
   const drawColor = useEditorStore((s) => s.drawColor);
+=======
+>>>>>>> origin/v0/anydoc-design-system
   const redactions = useEditorStore((s) => s.redactions);
   const ocrPage = useEditorStore((s) =>
     s.ocrPages.find((p) => p.pageIndex === pageNumber - 1)
@@ -314,7 +323,10 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
   const pageImages = images.filter((i) => i.pageIndex === pageNumber - 1);
   const pageTextObjects = textObjects.filter((t) => t.pageIndex === pageNumber - 1);
   const pageAnnotations = annotations.filter((a) => a.pageIndex === pageNumber - 1);
+<<<<<<< HEAD
   const pageStickyNotes = stickyNotes.filter((n) => n.pageIndex === pageNumber - 1);
+=======
+>>>>>>> origin/v0/anydoc-design-system
   const pageRedactions = redactions.filter((r) => r.pageIndex === pageNumber - 1);
 
   // Seed the local value only when a *different* session starts. Keyed on the session id so
@@ -935,6 +947,7 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
         }
         store.updateTextObject(textDrag.id, { x, y, width, height });
       }
+<<<<<<< HEAD
 
       const stickyNoteDrag = stickyNoteDragRef.current;
       if (stickyNoteDrag) {
@@ -949,12 +962,17 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
         y = Math.max(0, Math.min(y, pageHeight - height));
         useEditorStore.getState().updateStickyNote?.(stickyNoteDrag.id, { x, y });
       }
+=======
+>>>>>>> origin/v0/anydoc-design-system
     };
     const onUp = () => {
       imageDragRef.current = null;
       fieldDragRef.current = null;
       textDragRef.current = null;
+<<<<<<< HEAD
       stickyNoteDragRef.current = null;
+=======
+>>>>>>> origin/v0/anydoc-design-system
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
@@ -1053,7 +1071,11 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
           const ctx = dc.getContext("2d");
           if (ctx) {
             ctx.clearRect(0, 0, dc.width, dc.height);
+<<<<<<< HEAD
             ctx.strokeStyle = useEditorStore.getState().drawColor;
+=======
+            ctx.strokeStyle = "#1a6eff";
+>>>>>>> origin/v0/anydoc-design-system
             ctx.lineWidth = 2;
             ctx.lineCap = "round";
             ctx.lineJoin = "round";
@@ -1160,7 +1182,11 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
               id: newId(),
               type: "draw",
               pageIndex: pageNumber - 1,
+<<<<<<< HEAD
               color: drawColor,
+=======
+              color: "#1a6eff",
+>>>>>>> origin/v0/anydoc-design-system
               rects: [{ x: 0, y: 0, width: container.clientWidth / scale, height: 0 }],
               scale,
             };
@@ -1188,8 +1214,11 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
           pageIndex: pageNumber - 1,
           x: xCss / scale,
           y: yCss / scale,
+<<<<<<< HEAD
           width: 200,
           height: 150,
+=======
+>>>>>>> origin/v0/anydoc-design-system
           text: "New note",
           author: "User",
           date: new Date().toLocaleDateString(),
@@ -1445,6 +1474,7 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
           );
         }
 
+<<<<<<< HEAD
 return null;
         })}
 
@@ -1595,6 +1625,9 @@ return null;
             )}
           </div>
         );
+=======
+        return null;
+>>>>>>> origin/v0/anydoc-design-system
       })}
 
       {/* Marked redaction areas — burned into the pixels when applied. */}
@@ -2003,7 +2036,11 @@ return null;
                 </option>
               )}
               {TEXT_FONT_CHOICES.map((f) => (
+<<<<<<< HEAD
                 <option key={f.label} value={f.value} style={{ color: "#111" }}>
+=======
+                <option key={f.label} value={f.value}>
+>>>>>>> origin/v0/anydoc-design-system
                   {f.label}
                 </option>
               ))}
@@ -2056,6 +2093,7 @@ return null;
               B
             </button>
             <span className="text-style-label">Spacing</span>
+<<<<<<< HEAD
             <div style={{ display: "flex", alignItems: "center", gap: 6, width: 160 }}>
               <input
                 type="range"
@@ -2100,6 +2138,37 @@ return null;
               <span style={{ width: 48, textAlign: "center" }}>1.5</span>
               <span style={{ width: 48, textAlign: "right" }}>3.0</span>
             </div>
+=======
+            <button
+              type="button"
+              aria-label="Decrease line spacing"
+              onClick={() =>
+                patchSession({
+                  lineHeight: Math.max(
+                    MIN_LINE_HEIGHT,
+                    Number(((textEdit.lineHeight ?? 1.25) - 0.1).toFixed(2))
+                  ),
+                })
+              }
+            >
+              <Minus size={12} />
+            </button>
+            <span className="text-style-value">{(textEdit.lineHeight ?? 1.25).toFixed(1)}</span>
+            <button
+              type="button"
+              aria-label="Increase line spacing"
+              onClick={() =>
+                patchSession({
+                  lineHeight: Math.min(
+                    MAX_LINE_HEIGHT,
+                    Number(((textEdit.lineHeight ?? 1.25) + 0.1).toFixed(2))
+                  ),
+                })
+              }
+            >
+              <Plus size={12} />
+            </button>
+>>>>>>> origin/v0/anydoc-design-system
           </div>
           {fontNotice && textEdit && (
             <div

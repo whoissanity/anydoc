@@ -9,6 +9,11 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+<<<<<<< HEAD
+=======
+    "test:e2e": "playwright test",
+    "test:visual": "playwright test visual",
+>>>>>>> origin/v0/anydoc-design-system
     "check:security": "node scripts/security-audit-scan.mjs",
     "audit": "npm audit --audit-level=high"
   },
@@ -34,6 +39,10 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
+<<<<<<< HEAD
+=======
+    "@playwright/test": "^1.65.0",
+>>>>>>> origin/v0/anydoc-design-system
     "@tailwindcss/postcss": "^4.1.7",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",

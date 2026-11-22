@@ -14,7 +14,11 @@ const EditorShell = dynamic(
           placeItems: "center",
           backgroundColor: "#000000",
           color: "rgba(255, 255, 255, 0.87)",
+<<<<<<< HEAD
           fontFamily: "'Host Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
+=======
+          fontFamily: "'Libre Franklin', -apple-system, BlinkMacSystemFont, sans-serif",
+>>>>>>> origin/v0/anydoc-design-system
           fontWeight: 600,
         }}
       >

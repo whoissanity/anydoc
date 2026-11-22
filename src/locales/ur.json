@@ -330,7 +330,11 @@
   "privacy.network.sameOrigin": "ایک ہی ذرائع سے لوڈ",
   "privacy.network.active": "شائع شدہ Content-Security-Policy غیر ملکی ذرائع کو بھی بلاک کرتی ہے۔",
   "privacy.network.inactive": "نگرانی ایڈیٹر چلنے پر شروع ہوتی ہے۔",
+<<<<<<< HEAD
   "fonts.title": "Local fonts",
+=======
+  "fonts.title": "مقامی فونٹس",
+>>>>>>> origin/v0/anydoc-design-system
   "fonts.description": "A close visual match is always used for document fonts. You can also add your own .ttf, .otf, .woff, or .woff2 files for this device.",
   "fonts.disclosure": "Added fonts stay on this device. You are responsible for having the rights to use any font you add.",
   "fonts.substitution": "When no matching font is found, the closest available substitute is used and labeled as such — never silently presented as the original.",
@@ -345,5 +349,27 @@
   "fonts.quota": "Browser storage is full",
   "fonts.addFailed": "Could not add that font",
   "fonts.unavailable": "Font storage is unavailable in this browser",
+<<<<<<< HEAD
   "fonts.noMatch": "No matching font found, using closest available"
+=======
+  "fonts.noMatch": "No matching font found, using closest available",
+  "nav.privacy": "رازداری",
+  "nav.tools": "ٹولز",
+  "nav.source": "ماخذ",
+  "nav.openEditor": "ایڈیٹر کھولیں",
+  "mkt.eyebrow": "اوپن سورس / MIT / کوئی اکاؤنٹ نہیں",
+  "mkt.tagline": "کوئی بھی دستاویز ایڈٹ کریں۔ یہ کبھی اس ٹیب سے باہر نہیں جاتی۔",
+  "mkt.readSource": "سورس کوڈ پڑھیں",
+  "mkt.countLabel1": "اس آلے سے باہر بھیجی گئی درخواستیں",
+  "mkt.countLabel2": "جب سے آپ نے یہ صفحہ کھولا",
+  "mkt.countSub": "{local} ایک ہی ماخذ کی فائل لوڈز۔ اپنے براؤزر کا نیٹ ورک ٹیب کھول کر جانچیں۔",
+  "mkt.skip": "مواد پر جائیں",
+  "landing.eyebrow": "اوپن سورس / اسی ٹیب میں چلتا ہے",
+  "landing.orStart": "یا شروع سے آغاز کریں",
+  "landing.fromText": "متن سے",
+  "landing.fromImages": "تصاویر سے",
+  "landing.fromHtml": "HTML سے",
+  "landing.fromDocument": "کسی بھی دستاویز سے",
+  "landing.requestsCounted": "اس ٹیب کی ہر درخواست یہاں گنی جاتی ہے۔"
+>>>>>>> origin/v0/anydoc-design-system
 }

@@ -105,8 +105,11 @@ interface EditorState {
   underlineColor: string;
   strikeColor: string;
   markupOpacity: number;
+<<<<<<< HEAD
   drawColor: string;
   recentFonts: string[];
+=======
+>>>>>>> origin/v0/anydoc-design-system
   redactions: RedactBox[];
   bates: BatesOptions;
   statusMessage: string;
@@ -175,15 +178,21 @@ interface EditorState {
   clearMarkup: () => void;
   addStickyNote: (note: StickyNoteItem) => void;
   removeStickyNote: (id: string) => void;
+<<<<<<< HEAD
   updateStickyNote: (id: string, patch: Partial<StickyNoteItem>) => void;
+=======
+>>>>>>> origin/v0/anydoc-design-system
   setOcrPage: (page: OcrPage) => void;
   setOcrLanguage: (lang: string) => void;
   clearOcrPages: () => void;
   setAnnotColor: (color: string) => void;
   setAnnotColorFor: (type: "highlight" | "underline" | "strikethrough", color: string) => void;
   setMarkupOpacity: (opacity: number) => void;
+<<<<<<< HEAD
   setDrawColor: (color: string) => void;
   addRecentFont: (font: string) => void;
+=======
+>>>>>>> origin/v0/anydoc-design-system
   addRedaction: (box: RedactBox) => void;
   removeRedaction: (id: string) => void;
   clearRedactions: () => void;
@@ -264,8 +273,11 @@ export const useEditorStore = create<EditorState>((set) => ({
   underlineColor: "#000000",
   strikeColor: "#000000",
   markupOpacity: 0.42,
+<<<<<<< HEAD
   drawColor: "#1a6eff",
   recentFonts: [],
+=======
+>>>>>>> origin/v0/anydoc-design-system
   redactions: [],
   bates: defaultBates,
   statusMessage: "Ready",
@@ -441,11 +453,14 @@ export const useEditorStore = create<EditorState>((set) => ({
     set((s) => ({ stickyNotes: [...s.stickyNotes, note], dirty: true })),
   removeStickyNote: (id) =>
     set((s) => ({ stickyNotes: s.stickyNotes.filter((n) => n.id !== id), dirty: true })),
+<<<<<<< HEAD
   updateStickyNote: (id, patch) =>
     set((s) => ({
       stickyNotes: s.stickyNotes.map((n) => (n.id === id ? { ...n, ...patch } : n)),
       dirty: true,
     })),
+=======
+>>>>>>> origin/v0/anydoc-design-system
   setOcrPage: (page) =>
     set((s) => ({
       ocrPages: [...s.ocrPages.filter((p) => p.pageIndex !== page.pageIndex), page],
@@ -467,6 +482,7 @@ export const useEditorStore = create<EditorState>((set) => ({
         : { strikeColor: color }
     ),
   setMarkupOpacity: (markupOpacity) => set({ markupOpacity }),
+<<<<<<< HEAD
   setDrawColor: (drawColor) => set({ drawColor }),
   addRecentFont: (font) =>
     set((s) => {
@@ -474,6 +490,8 @@ export const useEditorStore = create<EditorState>((set) => ({
       const next = [font, ...existing].slice(0, 5);
       return { recentFonts: next };
     }),
+=======
+>>>>>>> origin/v0/anydoc-design-system
   addRedaction: (box) => set((s) => ({ redactions: [...s.redactions, box] })),
   removeRedaction: (id) =>
     set((s) => ({ redactions: s.redactions.filter((r) => r.id !== id) })),
