@@ -83,11 +83,7 @@ export function OcrLanguageSelector({ compact = false }: { compact?: boolean }) 
         >
           <optgroup label="Installed Languages">
             {installed.map((p) => (
-<<<<<<< HEAD
-              <option key={p.code} value={p.code} style={{ color: "#111" }}>
-=======
               <option key={p.code} value={p.code}>
->>>>>>> origin/v0/anydoc-design-system
                 {p.label} ({p.code})
               </option>
             ))}
@@ -102,11 +98,7 @@ export function OcrLanguageSelector({ compact = false }: { compact?: boolean }) 
             </optgroup>
           )}
           <optgroup label="Manage">
-<<<<<<< HEAD
-            <option value="__manage__" style={{ color: "#111", fontWeight: "bold" }}>
-=======
             <option value="__manage__" style={{ fontWeight: "bold" }}>
->>>>>>> origin/v0/anydoc-design-system
               ⚙ Manage Language Packs…
             </option>
           </optgroup>

@@ -330,11 +330,7 @@
   "privacy.network.sameOrigin": "Cargas del mismo origen",
   "privacy.network.active": "La política de seguridad de contenido publicada también bloquea los orígenes que no son propios.",
   "privacy.network.inactive": "La monitorización comienza cuando el editor está en ejecución.",
-<<<<<<< HEAD
-  "fonts.title": "Local fonts",
-=======
   "fonts.title": "Fuentes locales",
->>>>>>> origin/v0/anydoc-design-system
   "fonts.description": "A close visual match is always used for document fonts. You can also add your own .ttf, .otf, .woff, or .woff2 files for this device.",
   "fonts.disclosure": "Added fonts stay on this device. You are responsible for having the rights to use any font you add.",
   "fonts.substitution": "When no matching font is found, the closest available substitute is used and labeled as such — never silently presented as the original.",
@@ -349,9 +345,6 @@
   "fonts.quota": "Browser storage is full",
   "fonts.addFailed": "Could not add that font",
   "fonts.unavailable": "Font storage is unavailable in this browser",
-<<<<<<< HEAD
-  "fonts.noMatch": "No matching font found, using closest available"
-=======
   "fonts.noMatch": "No matching font found, using closest available",
   "nav.privacy": "Privacidad",
   "nav.tools": "Herramientas",
@@ -371,5 +364,4 @@
   "landing.fromHtml": "Desde HTML",
   "landing.fromDocument": "Desde cualquier documento",
   "landing.requestsCounted": "Cada solicitud que hace esta pestaña se cuenta aquí."
->>>>>>> origin/v0/anydoc-design-system
 }

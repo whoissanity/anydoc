@@ -59,11 +59,7 @@ export function StatusBar() {
           fontSize: 12,
         }}
       >
-<<<<<<< HEAD
-        {statusMessage}
-=======
         {statusMessage === "Ready" ? "" : statusMessage}
->>>>>>> origin/v0/anydoc-design-system
       </span>
 
       {hasDoc && (

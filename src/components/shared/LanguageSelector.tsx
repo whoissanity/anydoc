@@ -29,11 +29,7 @@ export function LanguageSelector() {
       }}
     >
       {LOCALES.map((code) => (
-<<<<<<< HEAD
-        <option key={code} value={code} style={{ color: "#111" }}>
-=======
         <option key={code} value={code}>
->>>>>>> origin/v0/anydoc-design-system
           {LOCALE_LABELS[code]}
         </option>
       ))}
