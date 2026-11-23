@@ -345,9 +345,6 @@
   "fonts.quota": "Browser storage is full",
   "fonts.addFailed": "Could not add that font",
   "fonts.unavailable": "Font storage is unavailable in this browser",
-<<<<<<< HEAD
-  "fonts.noMatch": "No matching font found, using closest available"
-=======
   "fonts.noMatch": "No matching font found, using closest available",
   "nav.privacy": "Privacy",
   "nav.tools": "Tools",
@@ -367,5 +364,4 @@
   "landing.fromHtml": "From HTML",
   "landing.fromDocument": "From any document",
   "landing.requestsCounted": "Every request this tab makes is counted here."
->>>>>>> origin/v0/anydoc-design-system
 }

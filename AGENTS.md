@@ -68,8 +68,6 @@ Its categories and their status in this codebase:
 | JWT, password storage, session lifecycle, IDOR, mass assignment | No current surface | The app has no accounts, sessions or persistence |
 
 Re-check the last two rows before adding authentication, a database, user-provided URLs, file paths or navigation to the app; the skill's guidance becomes binding at that point. Where the skill and this file disagree, the stricter control wins.
-<<<<<<< HEAD
-=======
 
 # AnyDoc Design System — binding rules
 
@@ -131,4 +129,3 @@ Rules:
 2. Switch the language to Spanish and Arabic: no English leftovers, nothing overflowing, headline still Merriweather, body still Libre Franklin.
 3. Confirm the counter still reads `0` and the browser makes no request to a non-same-origin host.
 4. Run `pnpm exec tsc --noEmit` and `pnpm exec eslint` on the files you touched.
->>>>>>> origin/v0/anydoc-design-system

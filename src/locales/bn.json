@@ -330,11 +330,7 @@
   "privacy.network.sameOrigin": "একই ওরিজিন থেকে লোড",
   "privacy.network.active": "প্রকাশিত Content-Security-Policy নিজস্ব নয় এমন ওরিজিনও ব্লক করে।",
   "privacy.network.inactive": "সম্পাদক চললে মনিটরিং শুরু হয়।",
-<<<<<<< HEAD
-  "fonts.title": "Local fonts",
-=======
   "fonts.title": "স্থানীয় ফন্ট",
->>>>>>> origin/v0/anydoc-design-system
   "fonts.description": "A close visual match is always used for document fonts. You can also add your own .ttf, .otf, .woff, or .woff2 files for this device.",
   "fonts.disclosure": "Added fonts stay on this device. You are responsible for having the rights to use any font you add.",
   "fonts.substitution": "When no matching font is found, the closest available substitute is used and labeled as such — never silently presented as the original.",
@@ -349,9 +345,6 @@
   "fonts.quota": "Browser storage is full",
   "fonts.addFailed": "Could not add that font",
   "fonts.unavailable": "Font storage is unavailable in this browser",
-<<<<<<< HEAD
-  "fonts.noMatch": "No matching font found, using closest available"
-=======
   "fonts.noMatch": "No matching font found, using closest available",
   "nav.privacy": "গোপনীয়তা",
   "nav.tools": "টুল",
@@ -371,5 +364,4 @@
   "landing.fromHtml": "HTML থেকে",
   "landing.fromDocument": "যেকোনো নথি থেকে",
   "landing.requestsCounted": "এই ট্যাবের প্রতিটি অনুরোধ এখানে গণনা করা হয়।"
->>>>>>> origin/v0/anydoc-design-system
 }

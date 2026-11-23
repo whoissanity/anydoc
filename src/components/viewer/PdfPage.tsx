@@ -267,20 +267,6 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
     centerY: number;
   } | null>(null);
 
-<<<<<<< HEAD
-  const stickyNoteDragRef = useRef<{
-    id: string;
-    startX: number;
-    startY: number;
-    box: { x: number; y: number; width: number; height: number };
-  } | null>(null);
-
-  const [selectedStickyNoteId, setSelectedStickyNoteId] = useState<string | null>(null);
-  const [editingStickyNoteId, setEditingStickyNoteId] = useState<string | null>(null);
-  const [stickyNoteText, setStickyNoteText] = useState("");
-
-=======
->>>>>>> origin/v0/anydoc-design-system
   const pdfDocProxy = useEditorStore((s) => s.pdfDocProxy);
   const tool = useEditorStore((s) => s.tool);
   const formFields = useEditorStore((s) => s.formFields);
@@ -302,18 +288,10 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
     return () => window.removeEventListener(USER_FONTS_CHANGED_EVENT, onFontsChanged);
   }, []);
   const annotations = useEditorStore((s) => s.annotations);
-<<<<<<< HEAD
-  const stickyNotes = useEditorStore((s) => s.stickyNotes);
-=======
->>>>>>> origin/v0/anydoc-design-system
   const annotColor = useEditorStore((s) => s.annotColor);
   const underlineColor = useEditorStore((s) => s.underlineColor);
   const strikeColor = useEditorStore((s) => s.strikeColor);
   const markupOpacity = useEditorStore((s) => s.markupOpacity);
-<<<<<<< HEAD
-  const drawColor = useEditorStore((s) => s.drawColor);
-=======
->>>>>>> origin/v0/anydoc-design-system
   const redactions = useEditorStore((s) => s.redactions);
   const ocrPage = useEditorStore((s) =>
     s.ocrPages.find((p) => p.pageIndex === pageNumber - 1)
@@ -323,10 +301,6 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
   const pageImages = images.filter((i) => i.pageIndex === pageNumber - 1);
   const pageTextObjects = textObjects.filter((t) => t.pageIndex === pageNumber - 1);
   const pageAnnotations = annotations.filter((a) => a.pageIndex === pageNumber - 1);
-<<<<<<< HEAD
-  const pageStickyNotes = stickyNotes.filter((n) => n.pageIndex === pageNumber - 1);
-=======
->>>>>>> origin/v0/anydoc-design-system
   const pageRedactions = redactions.filter((r) => r.pageIndex === pageNumber - 1);
 
   // Seed the local value only when a *different* session starts. Keyed on the session id so
@@ -947,32 +921,11 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
         }
         store.updateTextObject(textDrag.id, { x, y, width, height });
       }
-<<<<<<< HEAD
-
-      const stickyNoteDrag = stickyNoteDragRef.current;
-      if (stickyNoteDrag) {
-        const dx = (event.clientX - stickyNoteDrag.startX) / scale;
-        const dy = (event.clientY - stickyNoteDrag.startY) / scale;
-        let { x, y, width, height } = stickyNoteDrag.box;
-        const pageWidth = size.w ? size.w / scale : Number.POSITIVE_INFINITY;
-        const pageHeight = size.h ? size.h / scale : Number.POSITIVE_INFINITY;
-        x += dx;
-        y += dy;
-        x = Math.max(0, Math.min(x, pageWidth - width));
-        y = Math.max(0, Math.min(y, pageHeight - height));
-        useEditorStore.getState().updateStickyNote?.(stickyNoteDrag.id, { x, y });
-      }
-=======
->>>>>>> origin/v0/anydoc-design-system
     };
     const onUp = () => {
       imageDragRef.current = null;
       fieldDragRef.current = null;
       textDragRef.current = null;
-<<<<<<< HEAD
-      stickyNoteDragRef.current = null;
-=======
->>>>>>> origin/v0/anydoc-design-system
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
@@ -1071,11 +1024,7 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
           const ctx = dc.getContext("2d");
           if (ctx) {
             ctx.clearRect(0, 0, dc.width, dc.height);
-<<<<<<< HEAD
-            ctx.strokeStyle = useEditorStore.getState().drawColor;
-=======
             ctx.strokeStyle = "#1a6eff";
->>>>>>> origin/v0/anydoc-design-system
             ctx.lineWidth = 2;
             ctx.lineCap = "round";
             ctx.lineJoin = "round";
@@ -1182,11 +1131,7 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
               id: newId(),
               type: "draw",
               pageIndex: pageNumber - 1,
-<<<<<<< HEAD
-              color: drawColor,
-=======
               color: "#1a6eff",
->>>>>>> origin/v0/anydoc-design-system
               rects: [{ x: 0, y: 0, width: container.clientWidth / scale, height: 0 }],
               scale,
             };
@@ -1214,11 +1159,6 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
           pageIndex: pageNumber - 1,
           x: xCss / scale,
           y: yCss / scale,
-<<<<<<< HEAD
-          width: 200,
-          height: 150,
-=======
->>>>>>> origin/v0/anydoc-design-system
           text: "New note",
           author: "User",
           date: new Date().toLocaleDateString(),
@@ -1474,160 +1414,7 @@ export function PdfPage({ pageNumber, scale, onMeasure }: Props) {
           );
         }
 
-<<<<<<< HEAD
-return null;
-        })}
-
-      {/* Sticky Notes — rendered as editable overlays with drag support. */}
-      {pageStickyNotes.map((note) => {
-        const selected = selectedStickyNoteId === note.id;
-        const editing = editingStickyNoteId === note.id;
-        const movable = tool === "select" || tool === "hand" || tool === "sticky-note";
-        const startDrag = (e: React.PointerEvent) => {
-          e.stopPropagation();
-          (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-          setSelectedStickyNoteId(note.id);
-          stickyNoteDragRef.current = {
-            id: note.id,
-            startX: e.clientX,
-            startY: e.clientY,
-            box: { x: note.x, y: note.y, width: note.width, height: note.height },
-          };
-        };
-        const handleDoubleClick = (e: React.MouseEvent) => {
-          e.stopPropagation();
-          setEditingStickyNoteId(note.id);
-          setStickyNoteText(note.text);
-        };
-        const handleBlur = () => {
-          if (editingStickyNoteId === note.id) {
-            useEditorStore.getState().updateStickyNote(note.id, { text: stickyNoteText });
-            setEditingStickyNoteId(null);
-          }
-        };
-        const handleKeyDown = (e: React.KeyboardEvent) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleBlur();
-          }
-          if (e.key === "Escape") {
-            setStickyNoteText(note.text);
-            handleBlur();
-          }
-        };
-        return (
-          <div
-            key={note.id}
-            className="sticky-note-overlay"
-            title={editing ? "" : "Drag to move · double-click to edit"}
-            onPointerDown={movable ? startDrag : undefined}
-            onDoubleClick={handleDoubleClick}
-            style={{
-              position: "absolute",
-              left: note.x * scale,
-              top: note.y * scale,
-              width: Math.max(note.width * scale, 120),
-              minHeight: Math.max(note.height * scale, 80),
-              zIndex: 9,
-              cursor: movable ? "move" : "text",
-              outline: selected ? "1.5px solid #0a84ff" : "1px dashed rgba(10,132,255,0.35)",
-              outlineOffset: -1,
-              pointerEvents: editing ? "none" : "auto",
-              touchAction: "none",
-              backgroundColor: "#fff9c4",
-              border: "1px solid #f0e080",
-              borderRadius: 2,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "4px 6px",
-                background: "rgba(0,0,0,0.05)",
-                borderBottom: "1px solid #f0e080",
-                borderRadius: "2px 2px 0 0",
-                userSelect: "none",
-              }}
-            >
-              <span style={{ fontSize: 10, color: "#666", whiteSpace: "nowrap" }}>
-                {note.author} · {note.date}
-              </span>
-              {selected && movable && (
-                <button
-                  type="button"
-                  aria-label="Delete sticky note"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    useEditorStore.getState().removeStickyNote(note.id);
-                    setSelectedStickyNoteId(null);
-                  }}
-                  style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: 2,
-                    background: "transparent",
-                    border: "none",
-                    color: "#999",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 12,
-                    lineHeight: 1,
-                  }}
-                >
-                  ×
-                </button>
-              )}
-            </div>
-            {editing ? (
-              <textarea
-                autoFocus
-                value={stickyNoteText}
-                onChange={(e) => setStickyNoteText(e.target.value)}
-                onBlur={handleBlur}
-                onKeyDown={handleKeyDown}
-                style={{
-                  flex: 1,
-                  padding: 8,
-                  fontSize: 12,
-                  fontFamily: "var(--font-sans)",
-                  color: "#111",
-                  background: "transparent",
-                  border: "none",
-                  outline: "none",
-                  resize: "both",
-                  minHeight: 60,
-                  lineHeight: 1.4,
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  flex: 1,
-                  padding: 8,
-                  fontSize: 12,
-                  fontFamily: "var(--font-sans)",
-                  color: "#111",
-                  lineHeight: 1.4,
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  overflow: "hidden",
-                }}
-              >
-                {note.text || "New note"}
-              </div>
-            )}
-          </div>
-        );
-=======
         return null;
->>>>>>> origin/v0/anydoc-design-system
       })}
 
       {/* Marked redaction areas — burned into the pixels when applied. */}
@@ -2036,11 +1823,7 @@ return null;
                 </option>
               )}
               {TEXT_FONT_CHOICES.map((f) => (
-<<<<<<< HEAD
-                <option key={f.label} value={f.value} style={{ color: "#111" }}>
-=======
                 <option key={f.label} value={f.value}>
->>>>>>> origin/v0/anydoc-design-system
                   {f.label}
                 </option>
               ))}
@@ -2093,52 +1876,6 @@ return null;
               B
             </button>
             <span className="text-style-label">Spacing</span>
-<<<<<<< HEAD
-            <div style={{ display: "flex", alignItems: "center", gap: 6, width: 160 }}>
-              <input
-                type="range"
-                min={MIN_LINE_HEIGHT}
-                max={MAX_LINE_HEIGHT}
-                step={0.05}
-                value={textEdit.lineHeight ?? 1.25}
-                onChange={(e) =>
-                  patchSession({ lineHeight: Number(Number(e.target.value).toFixed(2)) })
-                }
-                aria-label="Line spacing"
-                style={{
-                  flex: 1,
-                  height: 16,
-                  accentColor: "var(--c-primary)",
-                  cursor: "pointer",
-                }}
-              />
-              <span
-                className="text-style-value"
-                style={{
-                  minWidth: 36,
-                  textAlign: "right",
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {(textEdit.lineHeight ?? 1.25).toFixed(2)}
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                gap: 0,
-                padding: "0 4px",
-                fontSize: 9,
-                color: "var(--c-text-muted)",
-                pointerEvents: "none",
-              }}
-              aria-hidden="true"
-            >
-              <span style={{ width: 48, textAlign: "left" }}>1.0</span>
-              <span style={{ width: 48, textAlign: "center" }}>1.5</span>
-              <span style={{ width: 48, textAlign: "right" }}>3.0</span>
-            </div>
-=======
             <button
               type="button"
               aria-label="Decrease line spacing"
@@ -2168,7 +1905,6 @@ return null;
             >
               <Plus size={12} />
             </button>
->>>>>>> origin/v0/anydoc-design-system
           </div>
           {fontNotice && textEdit && (
             <div

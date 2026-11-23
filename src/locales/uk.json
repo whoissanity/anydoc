@@ -330,11 +330,7 @@
   "privacy.network.sameOrigin": "Завантаження з того самого джерела",
   "privacy.network.active": "Опублікована Content-Security-Policy також блокує джерела, що не належать сайту.",
   "privacy.network.inactive": "Моніторинг починається, щойно редактор запущено.",
-<<<<<<< HEAD
-  "fonts.title": "Local fonts",
-=======
   "fonts.title": "Локальні шрифти",
->>>>>>> origin/v0/anydoc-design-system
   "fonts.description": "A close visual match is always used for document fonts. You can also add your own .ttf, .otf, .woff, or .woff2 files for this device.",
   "fonts.disclosure": "Added fonts stay on this device. You are responsible for having the rights to use any font you add.",
   "fonts.substitution": "When no matching font is found, the closest available substitute is used and labeled as such — never silently presented as the original.",
@@ -349,9 +345,6 @@
   "fonts.quota": "Browser storage is full",
   "fonts.addFailed": "Could not add that font",
   "fonts.unavailable": "Font storage is unavailable in this browser",
-<<<<<<< HEAD
-  "fonts.noMatch": "No matching font found, using closest available"
-=======
   "fonts.noMatch": "No matching font found, using closest available",
   "nav.privacy": "Конфіденційність",
   "nav.tools": "Інструменти",
@@ -371,5 +364,4 @@
   "landing.fromHtml": "З HTML",
   "landing.fromDocument": "З будь-якого документа",
   "landing.requestsCounted": "Кожен запит цієї вкладки враховується тут."
->>>>>>> origin/v0/anydoc-design-system
 }

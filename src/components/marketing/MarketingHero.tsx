@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { LiveRequestCount } from "@/components/marketing/LiveRequestCount";
 import { FormatSpectrum } from "@/components/shared/FormatSpectrum";
+import { EditorPreview } from "@/components/marketing/EditorPreview";
 import { SITE } from "@/lib/site";
 
 export function MarketingHero() {
@@ -27,6 +28,7 @@ export function MarketingHero() {
         </div>
 
         <FormatSpectrum className="mkt-spectrum" />
+        <EditorPreview />
       </div>
     </section>
   );

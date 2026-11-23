@@ -4,11 +4,7 @@
  */
 export const SITE = {
   name: "AnyDoc",
-<<<<<<< HEAD
-  tagline: "The PDF, Word & Excel editor that never leaves your browser.",
-=======
   tagline: "Edit any document. It never leaves this tab.",
->>>>>>> origin/v0/anydoc-design-system
   repo: "https://github.com/whoissanity/anydoc",
   issues: "https://github.com/whoissanity/anydoc/issues",
   license: "https://github.com/whoissanity/anydoc/blob/main/LICENSE",
@@ -16,8 +12,6 @@ export const SITE = {
   email: "[INSERT EMAIL]",
   editorHref: "/editor",
 } as const;
-<<<<<<< HEAD
-=======
 
 /** Link to a file in the public repo, so every privacy claim can point at its proof. */
 export function sourceUrl(path: string): string {
@@ -52,4 +46,3 @@ export const FORMATS: readonly { ext: string; family: InkFamily }[] = [
   { ext: "txt", family: "text" },
   { ext: "json", family: "text" },
 ];
->>>>>>> origin/v0/anydoc-design-system

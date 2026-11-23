@@ -26,11 +26,7 @@ export default function EditorError({
         padding: 24,
         backgroundColor: "#000000",
         color: "rgba(255, 255, 255, 0.87)",
-<<<<<<< HEAD
-        fontFamily: "'Host Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
-=======
         fontFamily: "'Libre Franklin', -apple-system, BlinkMacSystemFont, sans-serif",
->>>>>>> origin/v0/anydoc-design-system
       }}
     >
       <div
@@ -115,8 +111,4 @@ const secondaryLink = {
   display: "inline-flex",
   alignItems: "center",
   textDecoration: "none",
-<<<<<<< HEAD
 } as const;
-=======
-} as const;
->>>>>>> origin/v0/anydoc-design-system
