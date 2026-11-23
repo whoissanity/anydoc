@@ -843,6 +843,9 @@ body:has(.mkt) {
   align-items: flex-start;
   overflow: hidden;
   padding: 28px 20px;
+  background-color: var(--c-surface);
+  background-image: radial-gradient(var(--c-border-subtle) 0.7px, transparent 0.8px);
+  background-size: 14px 14px;
 }
 
 .mkt-preview-page {
@@ -914,7 +917,7 @@ body:has(.mkt) {
 
 .mkt-preview-status {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 18px;
   padding: 8px 14px;
   border-top: 1px solid var(--c-border-subtle);
